@@ -1,7 +1,3 @@
-Here's a beautified version of your `README.md` file for your GitHub research repository, formatted with proper Markdown structure and enhancements for better readability and presentation:
-
----
-
 # **AutismoTech: Enhancing Autism Spectrum Disorder (ASD) Care**  
 **Smart Greenhouses: (24-25J-181)**  
 
