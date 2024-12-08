@@ -1,5 +1,4 @@
 # **AutismoTech: Enhancing Autism Spectrum Disorder (ASD) Care**  
-**Smart Greenhouses: (24-25J-181)**  
 
 ---
 
