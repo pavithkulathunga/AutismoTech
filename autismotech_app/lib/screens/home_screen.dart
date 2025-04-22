@@ -6,22 +6,114 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget greetingWidget() {
+      final hour = DateTime.now().hour;
+      if (hour < 12) {
+        return const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: 'Good\n',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF3c6e1d),
+                ),
+              ),
+              TextSpan(
+                text: 'Morning!',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.w300,
+                  color: Color(0xFF3c6e1d),
+                ),
+              ),
+            ],
+          ),
+        );
+      } else if (hour < 17) {
+        return const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: 'Good\n',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepOrange,
+                ),
+              ),
+              TextSpan(
+                text: 'Morning!',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.deepOrange,
+                ),
+              ),
+            ],
+          ),
+        );
+      } else {
+        return const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: 'Good\n',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
+              ),
+              TextSpan(
+                text: 'Morning!',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         centerTitle: true,
         title: const Text('Autismo-Tech'),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
-
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Container(
+            color: Color(0xFFe4f6e0),
+            // padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.only(left: 20, right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                greetingWidget(),
+                Image.asset(
+                  'assets/images/home_girl.png',
+                  height: 200,
+                  width: 200,
+                  fit: BoxFit.cover,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
           // navigations for screens
           Center(
             child: Row(
@@ -39,29 +131,25 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Center(
-                          child: Icon(
-                            Icons.health_and_safety,
+                        const Icon(
+                          Icons.health_and_safety,
+                          color: Colors.lightBlue,
+                          size: 50,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'ASD Diagnosis',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: Colors.lightBlue,
-                            size: 50,
-                          ),
-                        ), // Example icon
-                        const Center(
-                          child: Text(
-                            'ASD Diagnosis',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightBlue, // Or any color you want
-                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 Container(
                   //Attention Enhancing
                   height: 180,
@@ -74,21 +162,18 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Center(
-                          child: Icon(
-                            Icons.lightbulb,
+                        const Icon(
+                          Icons.lightbulb,
+                          color: Colors.orange,
+                          size: 50,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Attention Enhancing',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: Colors.orange,
-                            size: 50,
-                          ),
-                        ), // Example icon
-                        const Center(
-                          child: Text(
-                            'Attention Enhancing',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange, // Or any color you want
-                            ),
                           ),
                         ),
                       ],
@@ -98,7 +183,7 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -115,28 +200,21 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Center(
-                          child: Icon(
-                            Icons.face,
+                        const Icon(Icons.face, color: Colors.green, size: 50),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Emotion Detection',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: Colors.green,
-                            size: 50,
-                          ),
-                        ), // Example icon
-                        const Center(
-                          child: Text(
-                            'Emotion detection',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green, // Or any color you want
-                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 Container(
                   //Progress Prediction
                   height: 180,
@@ -149,21 +227,18 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Center(
-                          child: Icon(
-                            Icons.trending_up,
+                        const Icon(
+                          Icons.trending_up,
+                          color: Colors.purple,
+                          size: 50,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Progress Prediction',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: Colors.purple,
-                            size: 50,
-                          ),
-                        ), // Example icon
-                        const Center(
-                          child: Text(
-                            'Progress Prediction',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple, // Or any color you want
-                            ),
                           ),
                         ),
                       ],
