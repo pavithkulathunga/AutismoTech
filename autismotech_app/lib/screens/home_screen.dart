@@ -155,33 +155,38 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 20),
-                Container(
-                  //Attention Enhancing
-                  height: 180,
-                  width: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.lightbulb,
-                          color: Colors.orange,
-                          size: 50,
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Attention Enhancing',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/emotion');
+                  },
+                  child: Container(
+                    //Attention Enhancing
+                    height: 180,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.lightbulb,
                             color: Colors.orange,
+                            size: 50,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Attention Enhancing',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
