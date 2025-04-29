@@ -157,7 +157,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(width: 20),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, '/emotion');
+                    Navigator.pushNamed(context, '/attention');
                   },
                   child: Container(
                     //Attention Enhancing
@@ -198,29 +198,34 @@ class HomeScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  //Emotion detection
-                  height: 180,
-                  width: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.face, color: Colors.green, size: 50),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Emotion Detection',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/emotion');
+                  },
+                  child: Container(
+                    //Emotion detection
+                    height: 180,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.face, color: Colors.green, size: 50),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Emotion Detection',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
