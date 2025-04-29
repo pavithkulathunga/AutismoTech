@@ -57,7 +57,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
 
     setState(() => _isLoading = true);
 
-    final uri = Uri.parse('http://10.0.2.2:8080/predict');
+    final uri = Uri.parse('http://10.0.2.2:8080/asd_diagnose/predict');
     var request = http.MultipartRequest('POST', uri);
 
     answers.forEach((key, value) {
