@@ -44,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'Morning!',
+                text: 'Afternoon!',
                 style: TextStyle(
                   fontSize: 35,
                   fontWeight: FontWeight.w300,
@@ -67,7 +67,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'Morning!',
+                text: 'Evening!',
                 style: TextStyle(
                   fontSize: 35,
                   fontWeight: FontWeight.w300,
