@@ -45,6 +45,8 @@ class _EmotionScreenState extends State<EmotionScreen> {
                 icon: const Icon(Icons.videogame_asset),
                 label: const Text('Play Games', style: TextStyle(fontSize: 18)),
                 onPressed: () {
+                  Navigator.pushNamed(context, '/music'); /////link to games
+
                   // Navigate to games screen
                 },
               ),
@@ -68,6 +70,7 @@ class _EmotionScreenState extends State<EmotionScreen> {
                   style: TextStyle(fontSize: 18),
                 ),
                 onPressed: () {
+                  Navigator.pushNamed(context, '/music');
                   // Navigate to music therapy screen
                 },
               ),
