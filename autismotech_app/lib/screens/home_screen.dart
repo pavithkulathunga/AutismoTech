@@ -9,27 +9,38 @@ class HomeScreen extends StatelessWidget {
     Widget greetingWidget() {
       final hour = DateTime.now().hour;
       if (hour < 12) {
-        return const Text.rich(
-          TextSpan(
-            children: [
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text.rich(
               TextSpan(
-                text: 'Good\n',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF3c6e1d),
-                ),
+                children: [
+                  TextSpan(
+                    text: 'Good\n',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3c6e1d),
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Morning!',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.w300,
+                      color: Color(0xFF3c6e1d),
+                    ),
+                  ),
+                ],
               ),
-              TextSpan(
-                text: 'Morning!',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.w300,
-                  color: Color(0xFF3c6e1d),
-                ),
-              ),
-            ],
-          ),
+            ),
+            Image.asset(
+              'assets/images/home_girl.png',
+              height: 200,
+              width: 200,
+              fit: BoxFit.cover,
+            ),
+          ],
         );
       } else if (hour < 17) {
         return const Text.rich(
@@ -108,7 +119,9 @@ class HomeScreen extends StatelessWidget {
 
           // Main content scrollable (Z-index 1)
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 200), // Space for footer image
+            padding: const EdgeInsets.only(
+              bottom: 200,
+            ), // Space for footer image
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -119,12 +132,7 @@ class HomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       greetingWidget(),
-                      Image.asset(
-                        'assets/images/home_girl.png',
-                        height: 200,
-                        width: 200,
-                        fit: BoxFit.cover,
-                      ),
+                      
                     ],
                   ),
                 ),
