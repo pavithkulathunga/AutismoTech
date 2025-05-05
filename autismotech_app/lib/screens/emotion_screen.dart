@@ -8,8 +8,29 @@ class EmotionScreen extends StatefulWidget {
 }
 
 class _EmotionScreenState extends State<EmotionScreen> {
+  double imageLeftPosition = 0.0;
+
+  void moveImageLeft() {
+    setState(() {
+      imageLeftPosition = (imageLeftPosition - 20).clamp(
+        0.0,
+        MediaQuery.of(context).size.width - 200,
+      );
+    });
+  }
+
+  void moveImageRight() {
+    setState(() {
+      imageLeftPosition = (imageLeftPosition + 20).clamp(
+        0.0,
+        MediaQuery.of(context).size.width - 200,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    imageLeftPosition = (MediaQuery.of(context).size.width - 400) / 2 - 20;
     return Scaffold(
       backgroundColor: const Color.fromRGBO(76, 175, 80, 1),
       appBar: AppBar(
@@ -24,11 +45,11 @@ class _EmotionScreenState extends State<EmotionScreen> {
       body: Stack(
         children: [
           Positioned(
-            top: 50,
-            left: 50,
-            child: Container(
-              width: 150,
-              height: 150,
+            top: 1,
+            left: imageLeftPosition,
+            child: SizedBox(
+              width: 510,
+              height: 1230,
               child: Image.asset('assets/images/eappface.png'),
             ),
           ),
