@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
             Image.asset(
               'assets/images/good_morning.png',
               height: 200,
-              width: 150,
+              width: 140,
               fit: BoxFit.cover,
             ),
           ],
