@@ -92,178 +92,144 @@ class HomeScreen extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: Stack(
         children: [
-          Container(
-            color: Color(0xFFe4f6e0),
-            // padding: const EdgeInsets.all(8),
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                greetingWidget(),
-                Image.asset(
-                  'assets/images/home_girl.png',
-                  height: 200,
-                  width: 200,
-                  fit: BoxFit.cover,
-                ),
-              ],
+          // Positioned footer image (Z-index 0)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/home_footer.png',
+              fit: BoxFit.cover,
+              // height: 200,
             ),
           ),
 
-          const SizedBox(height: 30),
-          // navigations for screens
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // Main content scrollable (Z-index 1)
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 200), // Space for footer image
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/diagnosis');
-                  },
-                  child: Container(
-                    //ASD Diagnosis
-                    height: 180,
-                    width: 180,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.health_and_safety,
-                            color: Colors.lightBlue,
-                            size: 50,
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'ASD Diagnosis',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightBlue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/attention');
-                  },
-                  child: Container(
-                    //Attention Enhancing
-                    height: 180,
-                    width: 180,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.lightbulb,
-                            color: Colors.orange,
-                            size: 50,
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Attention Enhancing',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/emotion');
-                  },
-                  child: Container(
-                    //Emotion detection
-                    height: 180,
-                    width: 180,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.face, color: Colors.green, size: 50),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Emotion Detection',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
                 Container(
-                  //Progress Prediction
-                  height: 180,
-                  width: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.trending_up,
-                          color: Colors.purple,
-                          size: 50,
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Progress Prediction',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
-                          ),
-                        ),
-                      ],
-                    ),
+                  color: const Color(0xFFe4f6e0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      greetingWidget(),
+                      Image.asset(
+                        'assets/images/home_girl.png',
+                        height: 200,
+                        width: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 30),
+
+                // Row 1
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTile(
+                        context,
+                        icon: Icons.health_and_safety,
+                        label: 'ASD Diagnosis',
+                        color: Colors.lightBlue,
+                        routeName: '/diagnosis',
+                      ),
+                      const SizedBox(width: 20),
+                      _buildTile(
+                        context,
+                        icon: Icons.lightbulb,
+                        label: 'Attention Enhancing',
+                        color: Colors.orange,
+                        routeName: '/attention',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Row 2
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTile(
+                        context,
+                        icon: Icons.face,
+                        label: 'Emotion Detection',
+                        color: Colors.green,
+                        routeName: '/emotion',
+                      ),
+                      const SizedBox(width: 20),
+                      _buildTile(
+                        context,
+                        icon: Icons.trending_up,
+                        label: 'Progress Prediction',
+                        color: Colors.purple,
+                        routeName: '/progress',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String routeName,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, routeName);
+      },
+      child: Container(
+        height: 180,
+        width: 180,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 6,
+              offset: const Offset(2, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 50),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
