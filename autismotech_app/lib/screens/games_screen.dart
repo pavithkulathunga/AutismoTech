@@ -33,16 +33,47 @@ class GamesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: Center(
-                  child: _buildEmotionCard(
-                    context,
-                    icon: Icons.emoji_emotions,
-                    title: 'Happy Hills',
-                    color: Colors.yellow.shade700,
-                    onTap: () {
-                      // Navigate or show feature
-                    },
-                  ),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  children: [
+                    _buildEmotionCard(
+                      context,
+                      icon: Icons.emoji_emotions,
+                      title: 'Happy Hills',
+                      color: Colors.yellow.shade700,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const GameSectionScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildEmotionCard(
+                      context,
+                      icon: Icons.whatshot,
+                      title: 'Angry Volcano',
+                      color: Colors.redAccent,
+                      onTap: () {},
+                    ),
+                    _buildEmotionCard(
+                      context,
+                      icon: Icons.wb_incandescent,
+                      title: 'Surprise Cave',
+                      color: Colors.orangeAccent,
+                      onTap: () {},
+                    ),
+                    _buildEmotionCard(
+                      context,
+                      icon: Icons.self_improvement,
+                      title: 'Calm Forest',
+                      color: Colors.green,
+                      onTap: () {},
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -88,4 +119,24 @@ Widget _buildEmotionCard(
       ),
     ),
   );
+}
+
+class GameSectionScreen extends StatelessWidget {
+  const GameSectionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Happy Hills Game"),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: const Center(
+        child: Text(
+          'Game is starting...',
+          style: TextStyle(fontSize: 24, color: Colors.black),
+        ),
+      ),
+    );
+  }
 }
