@@ -3,6 +3,13 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    // Enable Gradle parallel builds
+    gradle.projectsEvaluated {
+        tasks.withType<JavaCompile> {
+            options.compilerArgs.add("-Xlint:unchecked")
+        }
+    }
 }
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()

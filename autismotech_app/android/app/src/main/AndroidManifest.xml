@@ -1,6 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!-- Permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Camera Feature -->
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    
     <application
-        android:label="Autismo-Tech"
+        android:label="autismotech_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
