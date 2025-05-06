@@ -44,12 +44,7 @@ class GamesScreen extends StatelessWidget {
                       title: 'Happy Hills',
                       color: Colors.yellow.shade700,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const GameSectionScreen(),
-                          ),
-                        );
+                        Navigator.pushNamed(context, '/happy');
                       },
                     ),
                     _buildEmotionCard(
