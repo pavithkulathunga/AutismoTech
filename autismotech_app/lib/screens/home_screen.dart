@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
                     text: 'Good\n',
                     style: TextStyle(
                       fontSize: 35,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w300,
                       color: Color(0xFF3c6e1d),
                     ),
                   ),
@@ -27,66 +27,91 @@ class HomeScreen extends StatelessWidget {
                     text: 'Morning!',
                     style: TextStyle(
                       fontSize: 35,
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.bold,
                       color: Color(0xFF3c6e1d),
                     ),
                   ),
                 ],
               ),
             ),
+            SizedBox(width: 80),
             Image.asset(
-              'assets/images/home_girl.png',
+              'assets/images/good_morning.png',
               height: 200,
-              width: 200,
+              width: 150,
               fit: BoxFit.cover,
             ),
           ],
         );
       } else if (hour < 17) {
-        return const Text.rich(
-          TextSpan(
-            children: [
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text.rich(
               TextSpan(
-                text: 'Good\n',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepOrange,
-                ),
+                children: [
+                  TextSpan(
+                    text: 'Good\n',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.deepOrange,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Afternoon!',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepOrange,
+                    ),
+                  ),
+                ],
               ),
-              TextSpan(
-                text: 'Afternoon!',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.deepOrange,
-                ),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(width: 50),
+            Image.asset(
+              'assets/images/good_afternoon.png',
+              height: 200,
+              width: 150,
+              fit: BoxFit.cover,
+            ),
+          ],
         );
       } else {
-        return const Text.rich(
-          TextSpan(
-            children: [
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text.rich(
               TextSpan(
-                text: 'Good\n',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
+                children: [
+                  TextSpan(
+                    text: 'Good\n',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Evening!',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
-              TextSpan(
-                text: 'Evening!',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(width: 50),
+            Image.asset(
+              'assets/images/home_girl.png',
+              height: 200,
+              width: 150,
+              fit: BoxFit.cover,
+            ),
+          ],
         );
       }
     }
@@ -130,10 +155,7 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      greetingWidget(),
-                      
-                    ],
+                    children: [greetingWidget()],
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -143,20 +165,46 @@ class HomeScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildTile(
-                        context,
-                        icon: Icons.health_and_safety,
-                        label: 'ASD Diagnosis',
-                        color: Colors.lightBlue,
-                        routeName: '/diagnosis',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.diagnosis,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(2, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildTile(
+                          context,
+                          icon: Icons.health_and_safety,
+                          label: 'ASD Diagnosis',
+                          color: Colors.white,
+                          routeName: '/diagnosis',
+                        ),
                       ),
                       const SizedBox(width: 20),
-                      _buildTile(
-                        context,
-                        icon: Icons.lightbulb,
-                        label: 'Attention Enhancing',
-                        color: Colors.orange,
-                        routeName: '/attention',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.Attention,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(2, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildTile(
+                          context,
+                          icon: Icons.lightbulb,
+                          label: 'Attention Enhancing',
+                          color: Colors.white,
+                          routeName: '/attention',
+                        ),
                       ),
                     ],
                   ),
@@ -168,20 +216,46 @@ class HomeScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildTile(
-                        context,
-                        icon: Icons.face,
-                        label: 'Emotion Detection',
-                        color: Colors.green,
-                        routeName: '/emotion',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.Emotion,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(2, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildTile(
+                          context,
+                          icon: Icons.face,
+                          label: 'Emotion Detection',
+                          color: Colors.white,
+                          routeName: '/emotion',
+                        ),
                       ),
                       const SizedBox(width: 20),
-                      _buildTile(
-                        context,
-                        icon: Icons.trending_up,
-                        label: 'Progress Prediction',
-                        color: Colors.purple,
-                        routeName: '/progress',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.Progress,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(2, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildTile(
+                          context,
+                          icon: Icons.trending_up,
+                          label: 'Progress Prediction',
+                          color: Colors.white,
+                          routeName: '/progress',
+                        ),
                       ),
                     ],
                   ),
@@ -209,17 +283,7 @@ class HomeScreen extends StatelessWidget {
       child: Container(
         height: 180,
         width: 180,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 6,
-              offset: const Offset(2, 4),
-            ),
-          ],
-        ),
+
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
