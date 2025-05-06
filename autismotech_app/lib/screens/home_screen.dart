@@ -280,7 +280,7 @@ class HomeScreen extends StatelessWidget {
       onTap: () {
         Navigator.pushNamed(context, routeName);
       },
-      child: Container(
+      child: SizedBox(
         height: 180,
         width: 180,
 

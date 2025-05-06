@@ -17,14 +17,14 @@ class _HappyScreenState extends State<HappyScreen>
     Colors.red,
     Colors.green,
     Colors.blue,
-    Colors.yellow,
+    const Color.fromARGB(239, 255, 176, 17),
   ];
   late Color targetColor;
   int score = 0;
 
   Timer? _timer;
   int _secondsLeft = 60;
-  bool _gameStarted = true;
+  final bool _gameStarted = true;
 
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
@@ -128,7 +128,7 @@ class _HappyScreenState extends State<HappyScreen>
       appBar: AppBar(
         title: const Text("Happy Hills - Color Match"),
         centerTitle: true,
-        backgroundColor: Colors.yellowAccent,
+        backgroundColor: const Color.fromARGB(255, 255, 145, 0),
       ),
       body: Stack(
         children: [
