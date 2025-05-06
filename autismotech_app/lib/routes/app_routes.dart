@@ -2,6 +2,7 @@ import 'package:autismotech_app/screens/diagnosis_screen.dart';
 import 'package:autismotech_app/screens/emotion_screen.dart';
 import 'package:autismotech_app/screens/home_screen.dart';
 import 'package:autismotech_app/screens/music_screen.dart';
+import 'package:autismotech_app/screens/games_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -11,5 +12,6 @@ class AppRoutes {
     '/diagnosis': (context) => const DiagnosisScreen(),
     '/emotion': (context) => const EmotionScreen(),
     '/music': (context) => const MusicScreen(),
+    '/games': (context) => const GamesScreen(),
   };
 }
