@@ -109,7 +109,7 @@ class HomeScreen extends StatelessWidget {
               'assets/images/good_evening.png',
               height: 200,
               width: 200,
-              fit: BoxFit.cover,
+              // fit: BoxFit.cover,
             ),
           ],
         );
