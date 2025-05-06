@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:spotify_sdk/spotify_sdk.dart';
-import 'package:spotify_sdk/models/player_state.dart';
-import 'package:spotify_sdk/models/track.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
@@ -16,53 +14,47 @@ class _MusicScreenState extends State<MusicScreen> {
       'song': 'Peaceful Piano',
       'artist': 'Calm Collective',
       'image': 'assets/song1.jpg',
-      'spotifyUrl': 'spotify:track:4iV5W9uYEdYUVa79Axb7Rh',
+      'spotifyUrl': 'https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh',
     },
     {
       'song': 'Gentle Guitar',
       'artist': 'Acoustic Healing',
       'image': 'assets/song2.jpg',
-      'spotifyUrl': 'spotify:track:1301WleyT98MSxVHPZCA6M',
+      'spotifyUrl': 'https://open.spotify.com/track/1301WleyT98MSxVHPZCA6M',
     },
     {
       'song': 'Ocean Breeze',
       'artist': 'Nature Sound',
       'image': 'assets/song3.jpg',
-      'spotifyUrl': 'spotify:track:2TpxZ7JUBn3uw46aR7qd6V',
+      'spotifyUrl': 'https://open.spotify.com/track/2TpxZ7JUBn3uw46aR7qd6V',
     },
     {
       'song': 'Starry Night',
       'artist': 'Lullaby Sounds',
       'image': 'assets/song4.jpg',
-      'spotifyUrl': 'spotify:track:5CtI0qwDJkDQGwXD1H1cLb',
+      'spotifyUrl': 'https://open.spotify.com/track/5CtI0qwDJkDQGwXD1H1cLb',
     },
     {
       'song': 'Rainbow Flow',
       'artist': 'Mind Calm',
       'image': 'assets/song5.jpg',
-      'spotifyUrl': 'spotify:track:6habFhsOp2NvshLv26DqMb',
+      'spotifyUrl': 'https://open.spotify.com/track/6habFhsOp2NvshLv26DqMb',
     },
     {
       'song': 'Soothing Sky',
       'artist': 'Zen Waves',
       'image': 'assets/song6.jpg',
-      'spotifyUrl': 'spotify:track:7GhIk7Il098yCjg4BQjzvb',
+      'spotifyUrl': 'https://open.spotify.com/track/7GhIk7Il098yCjg4BQjzvb',
     },
   ];
 
   int? currentlyPlayingIndex; // Track index of currently playing song
 
-  Future<void> _launchSpotifyTrack(String spotifyUri) async {
-    try {
-      await SpotifySdk.connectToSpotifyRemote(
-        clientId:
-            '2d6de2db9a7e4d6b9964f74350676154', // Replace with actual client ID
-        redirectUrl:
-            'com.autismotech.app://callback', // Replace with actual redirect URI
-      );
-      await SpotifySdk.play(spotifyUri: spotifyUri);
-    } catch (e) {
-      print('Could not play track: $e');
+  Future<void> _launchSpotifyTrack(String spotifyUrl) async {
+    if (await canLaunchUrl(Uri.parse(spotifyUrl))) {
+      await launchUrl(Uri.parse(spotifyUrl), mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $spotifyUrl';
     }
   }
 
@@ -121,15 +113,8 @@ class _MusicScreenState extends State<MusicScreen> {
                       title: Text(playlist[index]['song']!),
                       subtitle: Text(playlist[index]['artist']!),
                       trailing: IconButton(
-                        icon: Icon(
-                          currentlyPlayingIndex == index
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                        ),
+                        icon: const Icon(Icons.play_arrow),
                         onPressed: () {
-                          setState(() {
-                            currentlyPlayingIndex = index;
-                          });
                           _launchSpotifyTrack(playlist[index]['spotifyUrl']!);
                         },
                       ),
