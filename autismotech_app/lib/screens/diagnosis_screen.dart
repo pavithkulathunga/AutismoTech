@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:autismotech_app/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -27,8 +28,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
       "field": "feature2",
     },
     {
-      "question":
-          "Does your child point to indicate that he/she wants something?",
+      "question": "Does your child point to indicate that he/she wants something?",
       "field": "feature3",
     },
     {
@@ -36,8 +36,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
       "field": "feature4",
     },
     {
-      "question":
-          "Does your child pretend? (e.g., care for dolls, talk on a toy phone)",
+      "question": "Does your child pretend? (e.g., care for dolls, talk on a toy phone)",
       "field": "feature5",
     },
     {
@@ -117,10 +116,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
           _showDialog("Prediction Result", resBody);
         }
       } else {
-        _showDialog(
-          "Error",
-          "Server responded with status ${response.statusCode}:\n$resBody",
-        );
+        _showDialog("Error", "Server responded with status ${response.statusCode}:\n$resBody");
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -131,50 +127,50 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
   void _showDialog(String title, String message) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("OK"),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
           ),
+        ],
+      ),
     );
   }
 
-  List<Widget> _buildOptions(String fieldName) {
+  List<Widget> _buildOptions(String fieldName, Color textColor) {
+    List<Widget> radios = [];
+
     if (fieldName == 'feature10') {
-      return [
-        _buildRadio(fieldName, 'Always/Usually/Sometimes', 1),
-        _buildRadio(fieldName, 'Rarely/Never', 0),
+      radios = [
+        _buildRadio(fieldName, 'Always/Usually/Sometimes', 1, textColor),
+        _buildRadio(fieldName, 'Rarely/Never', 0, textColor),
       ];
     } else if (fieldName == 'feature11') {
-      return [
-        _buildRadio(fieldName, 'Male', 1),
-        _buildRadio(fieldName, 'Female', 0),
+      radios = [
+        _buildRadio(fieldName, 'Male', 1, textColor),
+        _buildRadio(fieldName, 'Female', 0, textColor),
       ];
     } else if (fieldName == 'feature12') {
-      return [
-        _buildRadio(fieldName, 'Yes', 1),
-        _buildRadio(fieldName, 'No', 0),
+      radios = [
+        _buildRadio(fieldName, 'Yes', 1, textColor),
+        _buildRadio(fieldName, 'No', 0, textColor),
       ];
     } else {
-      return [
-        _buildRadio(fieldName, 'Always/Usually', 0),
-        _buildRadio(fieldName, 'Sometimes/Rarely/Never', 1),
+      radios = [
+        _buildRadio(fieldName, 'Always/Usually', 0, textColor),
+        _buildRadio(fieldName, 'Sometimes/Rarely/Never', 1, textColor),
       ];
     }
+
+    return radios;
   }
 
-  Widget _buildRadio(String fieldName, String label, int value) {
+  Widget _buildRadio(String fieldName, String label, int value, Color textColor) {
     return RadioListTile<int>(
-      title: Text(label),
+      title: Text(label, style: TextStyle(color: textColor)),
       value: value,
       groupValue: answers[fieldName],
       onChanged: (val) {
@@ -182,19 +178,20 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
           answers[fieldName] = val;
         });
       },
+      activeColor: Colors.white,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE7F3FF),
+      backgroundColor: AppColors.diagnosis,
       appBar: AppBar(
         title: const Text('ASD Diagnosis'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: AppColors.diagnosis,
         titleTextStyle: const TextStyle(
-          color: Colors.white,
+          color: Color(0xFFEEF6F7),
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
@@ -207,50 +204,53 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  ...questions.map(
-                    (q) => Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              q["question"],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            ..._buildOptions(q["field"]),
-                          ],
+                  ...questions.asMap().entries.map(
+                    (entry) {
+                      final index = entry.key;
+                      final q = entry.value;
+                      final isEven = index % 2 == 0;
+
+                      final bgColor = isEven
+                          ? const Color(0xFF235784) // Dark blue
+                          : const Color(0xFFB3D8F7); // Light blue
+                      final textColor = isEven ? Colors.white : Colors.black;
+
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                    ),
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        color: bgColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                q["question"],
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              ..._buildOptions(q["field"], textColor),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Icon(Icons.image),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Upload Child\'s Photo:',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const Spacer(),
-                      ElevatedButton.icon(
-                        onPressed: _pickImage,
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Pick Image'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[300],
-                        ),
-                      ),
-                    ],
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.upload_file, color: Color(0xFFEEF6F7)),
+                    label: const Text("Select Child's Photo"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF235784),
+                      foregroundColor: const Color(0xFFEEF6F7),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (_pickedImage != null)
@@ -266,42 +266,38 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                   if (_pickedImage == null)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text('No image selected.'),
+                      child: Text(''),
                     ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 18,
-                      ),
+                      backgroundColor: const Color(0xFFF7AA00),
+                      foregroundColor: const Color(0xFFEEF6F7),
+                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 6,
                       shadowColor: Colors.black38,
                     ),
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : const Text(
-                              'DIAGNOSE',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFFEEF6F7),
                             ),
+                          )
+                        : const Text(
+                            'DIAGNOSE',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
                   ),
                 ],
               ),
