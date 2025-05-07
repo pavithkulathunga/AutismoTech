@@ -178,7 +178,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
           answers[fieldName] = val;
         });
       },
-      activeColor: Colors.white,
+      // activeColor: Colors.white,
     );
   }
 
@@ -191,7 +191,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
         centerTitle: true,
         backgroundColor: AppColors.diagnosis,
         titleTextStyle: const TextStyle(
-          color: Color(0xFFEEF6F7),
+          // color: Color(0xFFEEF6F7),
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
@@ -211,9 +211,9 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                       final isEven = index % 2 == 0;
 
                       final bgColor = isEven
-                          ? const Color(0xFF235784) // Dark blue
-                          : const Color(0xFFB3D8F7); // Light blue
-                      final textColor = isEven ? Colors.white : Colors.black;
+                          ? const Color(0xFFfde6b3) // Dark blue
+                          : const Color(0xFFfef7e6); // Light blue
+                      final textColor = Color(0xFF02557a);
 
                       return Card(
                         shape: RoundedRectangleBorder(
@@ -245,11 +245,11 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _pickImage,
-                    icon: const Icon(Icons.upload_file, color: Color(0xFFEEF6F7)),
+                    icon: const Icon(Icons.upload_file, color: Color(0xFFfcf5e6)),
                     label: const Text("Select Child's Photo"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF235784),
-                      foregroundColor: const Color(0xFFEEF6F7),
+                      backgroundColor: const Color(0xFF35baf6),
+                      foregroundColor: const Color(0xFFfcf5e6),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -263,17 +263,14 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                         fit: BoxFit.cover,
                       ),
                     ),
+                  const SizedBox(height: 20),
                   if (_pickedImage == null)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text(''),
-                    ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 15),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF7AA00),
-                      foregroundColor: const Color(0xFFEEF6F7),
+                      backgroundColor: const Color(0xFF0287c3),
+                      foregroundColor: const Color(0xFFfcf5e6),
                       padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -287,7 +284,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Color(0xFFEEF6F7),
+                              color: Color(0xFFfcf5e6),
                             ),
                           )
                         : const Text(
