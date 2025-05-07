@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'attention_screen.dart';
 
 class VideoListScreen extends StatelessWidget {
   const VideoListScreen({Key? key}) : super(key: key);
 
-  // List of predefined video assets
   final List<Map<String, String>> videoAssets = const [
     {'name': 'Fairy Tale', 'path': 'assets/videos/video1.mp4'},
     {'name': 'Peter Pan', 'path': 'assets/videos/video2.mp4'},
@@ -14,7 +12,7 @@ class VideoListScreen extends StatelessWidget {
     {'name': 'The Lost Child', 'path': 'assets/videos/video5.mp4'},
     {'name': 'The Mermaid and the Prince', 'path': 'assets/videos/video6.mp4'},
     {'name': 'The Old Man', 'path': 'assets/videos/video7.mp4'},
-    {'name': 'Mermaid and the Red Fish', 'path': 'assets/videos/video8.mp4'}
+    {'name': 'Mermaid and the Red Fish', 'path': 'assets/videos/video8.mp4'},
   ];
 
   @override
@@ -32,7 +30,8 @@ class VideoListScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AttentionScreen(videoPath: video['path']!),
+                  builder: (context) =>
+                      AttentionScreen(videoPath: video['path']!),
                 ),
               );
             },
