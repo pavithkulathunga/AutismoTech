@@ -254,7 +254,7 @@ class HomeScreen extends StatelessWidget {
                           icon: Icons.trending_up,
                           label: 'Progress Prediction',
                           color: Colors.white,
-                          routeName: '/progress',
+                          routeName: '/splash',
                         ),
                       ),
                     ],
