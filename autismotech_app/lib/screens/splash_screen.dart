@@ -1,10 +1,10 @@
-import 'package:asd_detection_flutter/screens/ProgressSummaryScreen.dart';
-import 'package:asd_detection_flutter/screens/QuestionsScreen.dart';
-import 'package:asd_detection_flutter/screens/SummaryScreen.dart' as summary;
-import 'package:asd_detection_flutter/screens/login_screen.dart';
-import 'package:asd_detection_flutter/screens/upload_screen.dart';
-import 'package:asd_detection_flutter/theme/theme.dart';
-import 'package:asd_detection_flutter/theme/colors.dart';
+import 'package:autismotech_app/screens/ProgressSummaryScreen.dart';
+import 'package:autismotech_app/screens/QuestionsScreen.dart';
+import 'package:autismotech_app/screens/SummaryScreen.dart' as summary;
+import 'package:autismotech_app/screens/login_screen.dart';
+import 'package:autismotech_app/screens/upload_screen.dart';
+import 'package:autismotech_app/constants/theme.dart';
+import 'package:autismotech_app/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -22,7 +22,8 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          pageBuilder:
+              (context, animation, secondaryAnimation) => const LoginScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -37,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.background,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -61,10 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   strokeCap: StrokeCap.round,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'Loading',
-                  style: loadingTextStyle,
-                ),
+                const Text('Loading', style: loadingTextStyle),
               ],
             ),
           ),

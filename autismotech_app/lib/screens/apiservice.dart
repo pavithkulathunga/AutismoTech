@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:asd_detection_flutter/screens/global.dart' as globals;
+import 'package:autismotech_app/screens/global.dart' as globals;
 
 const String BASE_URL = "http://10.0.2.2:8000";
 // const String BASE_URL = "http://192.168.156.69:8000"; // Change this to match your backend

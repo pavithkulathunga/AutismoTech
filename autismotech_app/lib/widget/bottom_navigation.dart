@@ -1,14 +1,15 @@
-import 'package:asd_detection_flutter/screens/ProgressSummaryScreen.dart';
-import 'package:asd_detection_flutter/screens/QuestionsScreen.dart';
-import 'package:asd_detection_flutter/screens/SummaryScreen.dart';
-import 'package:asd_detection_flutter/theme/colors.dart';
+import 'package:autismotech_app/screens/ProgressSummaryScreen.dart';
+import 'package:autismotech_app/screens/QuestionsScreen.dart';
+import 'package:autismotech_app/screens/SummaryScreen.dart';
+import 'package:autismotech_app/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
   const BottomNavigationBarWidget({super.key});
 
   @override
-  _BottomNavigationBarWidgetState createState() => _BottomNavigationBarWidgetState();
+  _BottomNavigationBarWidgetState createState() =>
+      _BottomNavigationBarWidgetState();
 }
 
 class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
@@ -28,12 +29,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     'assets/images/settingafterclick.png',
   ];
 
-  final List<String> _labels = [
-    'Home',
-    'Questions',
-    'Summary',
-    'Settings',
-  ];
+  final List<String> _labels = ['Home', 'Questions', 'Summary', 'Settings'];
 
   final List<Widget> _screens = [
     ProgressSummaryScreen(), // Home screen
@@ -60,7 +56,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundColor,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(6),
       ),
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
@@ -74,12 +70,17 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
                   width: _selectedIndex == index ? 54 : 42,
                   height: _selectedIndex == index ? 42 : 34,
                   decoration: BoxDecoration(
-                    color: _selectedIndex == index ? const Color(0xFF03045E) : Colors.transparent,
+                    color:
+                        _selectedIndex == index
+                            ? const Color(0xFF03045E)
+                            : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding: const EdgeInsets.all(4),
                   child: Image.asset(
-                    _selectedIndex == index ? _selectedIcons[index] : _icons[index],
+                    _selectedIndex == index
+                        ? _selectedIcons[index]
+                        : _icons[index],
                     width: 20,
                     height: 20,
                   ),

@@ -1,8 +1,8 @@
-import 'package:asd_detection_flutter/Widget/bottom_navigation.dart';
-import 'package:asd_detection_flutter/screens/ProgressSummaryScreen.dart'; // Import added
-import 'package:asd_detection_flutter/theme/colors.dart';
-import 'package:asd_detection_flutter/screens/apiservice.dart';
-import 'package:asd_detection_flutter/screens/global.dart' as globals;
+import 'package:autismotech_app/Widget/bottom_navigation.dart';
+import 'package:autismotech_app/screens/ProgressSummaryScreen.dart'; // Import added
+import 'package:autismotech_app/constants/colors.dart';
+import 'package:autismotech_app/screens/apiservice.dart';
+import 'package:autismotech_app/screens/global.dart' as globals;
 import 'package:flutter/material.dart';
 
 class SummaryScreen extends StatefulWidget {
@@ -25,7 +25,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
   Future<void> _fetchOverallPrediction() async {
     try {
       if (globals.globalUserId != null) {
-        final res = await ApiService.getOverallPrediction(userId: globals.globalUserId!);
+        final res = await ApiService.getOverallPrediction(
+          userId: globals.globalUserId!,
+        );
         setState(() {
           overallResponse = res;
         });
@@ -59,12 +61,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
         // Navigate to ProgressSummaryScreen when back button is pressed.
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ProgressSummaryScreen()),
+          MaterialPageRoute(
+            builder: (context) => const ProgressSummaryScreen(),
+          ),
         );
         return false;
       },
       child: Scaffold(
-        backgroundColor: AppColors.backgroundColor,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: AppColors.primaryColor,
           title: const Text('Summary'),
@@ -131,16 +135,21 @@ class _SummaryScreenState extends State<SummaryScreen> {
             selectedTimeframe = newValue!;
           });
         },
-        items: <String>['Past Week', '1 Month', '3 Months', '1 Year']
-            .map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          );
-        }).toList(),
+        items:
+            <String>[
+              'Past Week',
+              '1 Month',
+              '3 Months',
+              '1 Year',
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              );
+            }).toList(),
       ),
     );
   }

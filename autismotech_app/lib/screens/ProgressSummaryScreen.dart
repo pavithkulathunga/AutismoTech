@@ -1,7 +1,7 @@
-import 'package:asd_detection_flutter/screens/apiservice.dart';
-import 'package:asd_detection_flutter/Widget/bottom_navigation.dart';
-import 'package:asd_detection_flutter/theme/theme.dart';
-import 'package:asd_detection_flutter/theme/colors.dart';
+import 'package:autismotech_app/screens/apiservice.dart';
+import 'package:autismotech_app/Widget/bottom_navigation.dart';
+import 'package:autismotech_app/constants/theme.dart';
+import 'package:autismotech_app/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class ProgressSummaryScreen extends StatelessWidget {
@@ -14,7 +14,7 @@ class ProgressSummaryScreen extends StatelessWidget {
     double horizontalPadding = screenWidth * 0.05;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(horizontalPadding),
@@ -24,7 +24,9 @@ class ProgressSummaryScreen extends StatelessWidget {
               SizedBox(height: screenWidth * 0.1),
               // Dynamic welcome text using a FutureBuilder to fetch the username.
               FutureBuilder<String>(
-                future: ApiService().getUsername(), // Access instance method correctly
+                future:
+                    ApiService()
+                        .getUsername(), // Access instance method correctly
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Text(
@@ -55,7 +57,7 @@ class ProgressSummaryScreen extends StatelessWidget {
                   }
                 },
               ),
-          
+
               _buildDetailedProgressSection(screenWidth),
             ],
           ),
@@ -121,16 +123,19 @@ class ProgressSummaryScreen extends StatelessWidget {
   }
 
   /// Reusable widget for a progress bar.
-  Widget _buildProgressBar(String title, Color color, String label, double value, double screenWidth) {
+  Widget _buildProgressBar(
+    String title,
+    Color color,
+    String label,
+    double value,
+    double screenWidth,
+  ) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: screenWidth * 0.01),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: textStyle.copyWith(fontSize: screenWidth * 0.045),
-          ),
+          Text(title, style: textStyle.copyWith(fontSize: screenWidth * 0.045)),
           SizedBox(height: screenWidth * 0.01),
           Row(
             children: [
@@ -205,20 +210,40 @@ class ProgressSummaryScreen extends StatelessWidget {
         SizedBox(height: screenWidth * 0.02),
         _buildComparisonRow('Communication', 10, 0.9, 0.8, screenWidth),
         _buildComparisonRow('Social Interaction', 5, 0.7, 0.65, screenWidth),
-        _buildComparisonRow('Sensory Sensitivities', -4, 0.85, 0.9, screenWidth),
-        _buildComparisonRow('Repetitive and Focused Behaviors', 1, 0.8, 0.78, screenWidth),
+        _buildComparisonRow(
+          'Sensory Sensitivities',
+          -4,
+          0.85,
+          0.9,
+          screenWidth,
+        ),
+        _buildComparisonRow(
+          'Repetitive and Focused Behaviors',
+          1,
+          0.8,
+          0.78,
+          screenWidth,
+        ),
         _buildComparisonRow('Emotional Regulation', 7, 0.4, 0.3, screenWidth),
       ],
     );
   }
 
   /// Reusable widget to build a single comparison row.
-  Widget _buildComparisonRow(String title, int change, double currentValue, double previousValue, double screenWidth) {
+  Widget _buildComparisonRow(
+    String title,
+    int change,
+    double currentValue,
+    double previousValue,
+    double screenWidth,
+  ) {
     bool isIncrease = change > 0;
     bool isDecrease = change < 0;
-    Color changeColor = isIncrease ? Colors.green : (isDecrease ? Colors.red : Colors.grey);
+    Color changeColor =
+        isIncrease ? Colors.green : (isDecrease ? Colors.red : Colors.grey);
     String changeText = '${isIncrease ? '+' : ''}$change%';
-    String iconPath = isIncrease ? 'assets/images/up.png' : 'assets/images/down.png';
+    String iconPath =
+        isIncrease ? 'assets/images/up.png' : 'assets/images/down.png';
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: screenWidth * 0.01),

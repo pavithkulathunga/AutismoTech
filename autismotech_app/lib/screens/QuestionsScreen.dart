@@ -1,8 +1,8 @@
-import 'package:asd_detection_flutter/Widget/bottom_navigation.dart';
-import 'package:asd_detection_flutter/screens/ProgressSummaryScreen.dart';
-import 'package:asd_detection_flutter/theme/colors.dart';
-import 'package:asd_detection_flutter/screens/apiservice.dart';
-import 'package:asd_detection_flutter/screens/global.dart' as globals;
+import 'package:autismotech_app/Widget/bottom_navigation.dart';
+import 'package:autismotech_app/screens/ProgressSummaryScreen.dart';
+import 'package:autismotech_app/constants/colors.dart';
+import 'package:autismotech_app/screens/apiservice.dart';
+import 'package:autismotech_app/screens/global.dart' as globals;
 import 'package:flutter/material.dart';
 
 class QuestionsScreen extends StatefulWidget {
@@ -58,7 +58,9 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     if (initialAnswers.length < questions.length ||
         followupAnswers.length < questions.length) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please answer all questions before submitting.")),
+        const SnackBar(
+          content: Text("Please answer all questions before submitting."),
+        ),
       );
       return;
     }
@@ -106,9 +108,9 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
       );
     } catch (e) {
       Navigator.of(context).pop(); // Remove loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to submit responses: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to submit responses: $e")));
     }
   }
 
@@ -120,12 +122,14 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         // Navigate to ProgressSummaryScreen when back button is pressed.
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ProgressSummaryScreen()),
+          MaterialPageRoute(
+            builder: (context) => const ProgressSummaryScreen(),
+          ),
         );
         return false;
       },
       child: Scaffold(
-        backgroundColor: AppColors.backgroundColor,
+        backgroundColor: AppColors.background,
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.all(screenWidth * 0.05),
@@ -147,10 +151,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                     ),
                     Text(
                       isFollowUp ? 'Week 4' : 'Week 3',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.darkBlue,
-                      ),
+                      style: TextStyle(fontSize: 16, color: AppColors.darkBlue),
                     ),
                   ],
                 ),
@@ -204,10 +205,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         children: [
           Text(
             '${index + 1}. $question',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.darkBlue,
-            ),
+            style: TextStyle(fontSize: 16, color: AppColors.darkBlue),
           ),
           const SizedBox(height: 8),
           Row(
@@ -223,9 +221,10 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   }
 
   Widget _buildOption(int questionIndex, String label) {
-    bool isSelected = isFollowUp
-        ? followupAnswers[questionIndex] == label
-        : initialAnswers[questionIndex] == label;
+    bool isSelected =
+        isFollowUp
+            ? followupAnswers[questionIndex] == label
+            : initialAnswers[questionIndex] == label;
 
     return GestureDetector(
       onTap: () {
@@ -240,18 +239,16 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryColor.withOpacity(0.2)
-              : Colors.transparent,
+          color:
+              isSelected
+                  ? AppColors.primaryColor.withOpacity(0.2)
+                  : Colors.transparent,
           border: Border.all(color: AppColors.primaryColor, width: 1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: AppColors.darkBlue,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: AppColors.darkBlue, fontSize: 16),
         ),
       ),
     );

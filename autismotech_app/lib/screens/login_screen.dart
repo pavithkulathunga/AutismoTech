@@ -1,11 +1,13 @@
 // lib/screens/login_screen.dart
-import 'package:asd_detection_flutter/screens/apiservice.dart';
-import 'package:asd_detection_flutter/screens/upload_screen.dart'; // Ensure this import is correct
+import 'package:autismotech_app/constants/colors.dart';
+import 'package:autismotech_app/constants/theme.dart';
+import 'package:autismotech_app/screens/apiservice.dart';
+import 'package:autismotech_app/screens/upload_screen.dart'; // Ensure this import is correct
 import 'package:flutter/material.dart';
-import 'package:asd_detection_flutter/screens/global.dart' as globals;
+import 'package:autismotech_app/screens/global.dart' as globals;
 
-import '../theme/theme.dart';
-import '../theme/colors.dart';
+// import '../theme/theme.dart';
+// import '../theme/colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -62,10 +64,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("Login"),
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: AppColors.background,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

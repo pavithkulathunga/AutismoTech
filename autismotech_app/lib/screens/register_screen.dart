@@ -1,8 +1,10 @@
 // lib/screens/register_screen.dart
-import 'package:asd_detection_flutter/screens/apiservice.dart';
+import 'package:autismotech_app/screens/apiservice.dart';
+import 'package:autismotech_app/constants/theme.dart';
+import 'package:autismotech_app/constants/colors.dart';
 import 'package:flutter/material.dart';
-import '../theme/theme.dart';
-import '../theme/colors.dart';
+// import '../theme/theme.dart';
+// import '../theme/colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -38,15 +40,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         // Show success message and navigate to login screen
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Registration successful. User ID: ${response.id}")),
+          SnackBar(
+            content: Text("Registration successful. User ID: ${response.id}"),
+          ),
         );
         Navigator.pushReplacementNamed(context, '/login');
       } catch (e) {
         // Dismiss the loading indicator
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Registration failed: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Registration failed: $e")));
       }
     }
   }
@@ -54,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("Register"),
         backgroundColor: AppColors.primaryColor,
@@ -197,10 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: Text(
                   'Register',
-                  style: textStyle.copyWith(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+                  style: textStyle.copyWith(color: Colors.white, fontSize: 18),
                 ),
               ),
             ],

@@ -1,8 +1,7 @@
-import 'package:asd_detection_flutter/screens/login_screen.dart';
-import 'package:asd_detection_flutter/screens/register_screen.dart';
-import 'package:asd_detection_flutter/screens/splash_screen.dart';
+import 'package:autismotech_app/screens/login_screen.dart';
+import 'package:autismotech_app/screens/register_screen.dart';
+import 'package:autismotech_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-
 
 class RouteManager {
   static Route<dynamic> generateRoute(RouteSettings settings) {
