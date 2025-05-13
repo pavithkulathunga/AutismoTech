@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
@@ -9,53 +10,41 @@ class MusicScreen extends StatefulWidget {
 }
 
 class _MusicScreenState extends State<MusicScreen> {
-  List<Map<String, String>> playlist = [
-    {
-      'song': 'Peaceful Piano',
-      'artist': 'Calm Collective',
-      'image': 'assets/song1.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh',
-    },
-    {
-      'song': 'Gentle Guitar',
-      'artist': 'Acoustic Healing',
-      'image': 'assets/song2.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/1301WleyT98MSxVHPZCA6M',
-    },
-    {
-      'song': 'Ocean Breeze',
-      'artist': 'Nature Sound',
-      'image': 'assets/song3.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/2TpxZ7JUBn3uw46aR7qd6V',
-    },
-    {
-      'song': 'Starry Night',
-      'artist': 'Lullaby Sounds',
-      'image': 'assets/song4.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/5CtI0qwDJkDQGwXD1H1cLb',
-    },
-    {
-      'song': 'Rainbow Flow',
-      'artist': 'Mind Calm',
-      'image': 'assets/song5.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/6habFhsOp2NvshLv26DqMb',
-    },
-    {
-      'song': 'Soothing Sky',
-      'artist': 'Zen Waves',
-      'image': 'assets/song6.jpg',
-      'spotifyUrl': 'https://open.spotify.com/track/7GhIk7Il098yCjg4BQjzvb',
-    },
-  ];
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  List<Map<String, String>> playlist = List.generate(12, (index) {
+    return {
+      'song': 'Track ${index + 1}',
+      'artist': 'AutismoTech',
+      'image': 'assets/song${(index % 6) + 1}.jpg',
+      'file': 'assets/music/m${index + 1}.mp3',
+    };
+  });
 
   int? currentlyPlayingIndex; // Track index of currently playing song
+  bool isPlaying = false;
 
-  Future<void> _launchSpotifyTrack(String spotifyUrl) async {
-    if (await canLaunchUrl(Uri.parse(spotifyUrl))) {
-      await launchUrl(Uri.parse(spotifyUrl), mode: LaunchMode.externalApplication);
+  Future<void> _playLocalTrack(String filePath, int index) async {
+    final fileName = filePath.split('/').last;
+    if (currentlyPlayingIndex == index && isPlaying) {
+      await _audioPlayer.pause();
+      setState(() {
+        isPlaying = false;
+      });
     } else {
-      throw 'Could not launch $spotifyUrl';
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('music/$fileName'));
+      setState(() {
+        currentlyPlayingIndex = index;
+        isPlaying = true;
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,9 +102,13 @@ class _MusicScreenState extends State<MusicScreen> {
                       title: Text(playlist[index]['song']!),
                       subtitle: Text(playlist[index]['artist']!),
                       trailing: IconButton(
-                        icon: const Icon(Icons.play_arrow),
+                        icon: Icon(
+                          currentlyPlayingIndex == index && isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
+                        ),
                         onPressed: () {
-                          _launchSpotifyTrack(playlist[index]['spotifyUrl']!);
+                          _playLocalTrack(playlist[index]['file']!, index);
                         },
                       ),
                     ),
