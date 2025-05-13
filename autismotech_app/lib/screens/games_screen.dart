@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:autismotech_app/screens/suprise_screen.dart';
 
 class GamesScreen extends StatelessWidget {
   const GamesScreen({super.key});
@@ -67,7 +68,12 @@ class GamesScreen extends StatelessWidget {
                       icon: Icons.wb_incandescent,
                       title: 'Surprise Cave',
                       color: Colors.orangeAccent,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SurpriseScreen()),
+                        );
+                      },
                     ),
                     _buildEmotionCard(
                       context,
