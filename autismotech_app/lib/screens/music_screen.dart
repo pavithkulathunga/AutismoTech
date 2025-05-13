@@ -12,14 +12,80 @@ class MusicScreen extends StatefulWidget {
 class _MusicScreenState extends State<MusicScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  List<Map<String, String>> playlist = List.generate(12, (index) {
-    return {
-      'song': 'Track ${index + 1}',
+  List<Map<String, String>> playlist = [
+    {
+      'song': 'Rainbow Journey',
       'artist': 'AutismoTech',
-      'image': 'assets/song${(index % 6) + 1}.jpg',
-      'file': 'assets/music/m${index + 1}.mp3',
-    };
-  });
+      'image': 'assets/icons/app_icon1.png',
+      'file': 'assets/music/m1.mp3',
+    },
+    {
+      'song': 'Gentle Breeze',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon2.png',
+      'file': 'assets/music/m2.mp3',
+    },
+    {
+      'song': 'Ocean Whispers',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon3.png',
+      'file': 'assets/music/m3.mp3',
+    },
+    {
+      'song': 'Starlight Dreams',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon4.png',
+      'file': 'assets/music/m4.mp3',
+    },
+    {
+      'song': 'Peaceful Meadow',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon5.png',
+      'file': 'assets/music/m5.mp3',
+    },
+    {
+      'song': 'Magic Clouds',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon6.png',
+      'file': 'assets/music/m6.mp3',
+    },
+    {
+      'song': 'Sunny Smiles',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon1.png',
+      'file': 'assets/music/m7.mp3',
+    },
+    {
+      'song': 'Moonlight Hugs',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon2.png',
+      'file': 'assets/music/m8.mp3',
+    },
+    {
+      'song': 'Happy Heartbeats',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon3.png',
+      'file': 'assets/music/m9.mp3',
+    },
+    {
+      'song': 'Calm Forest',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon4.png',
+      'file': 'assets/music/m10.mp3',
+    },
+    {
+      'song': 'Bubble Parade',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon5.png',
+      'file': 'assets/music/m11.mp3',
+    },
+    {
+      'song': 'Cozy Cuddles',
+      'artist': 'AutismoTech',
+      'image': 'assets/icons/app_icon6.png',
+      'file': 'assets/music/m12.mp3',
+    },
+  ];
 
   int? currentlyPlayingIndex; // Track index of currently playing song
   bool isPlaying = false;
@@ -97,8 +163,8 @@ class _MusicScreenState extends State<MusicScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 0, 255, 55),
-              Color.fromARGB(255, 0, 92, 26),
+              Color.fromARGB(255, 30, 30, 30),
+              Color.fromARGB(255, 43, 43, 43),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -125,9 +191,24 @@ class _MusicScreenState extends State<MusicScreen> {
                     return Card(
                       color:
                           [
-                            Color.fromARGB(255, 5, 209, 255),
-                            Color.fromARGB(255, 255, 242, 0),
-                            Color.fromARGB(255, 241, 0, 165),
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
                           ][index % 3],
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -144,11 +225,17 @@ class _MusicScreenState extends State<MusicScreen> {
                             playlist[index]['image']!,
                           ),
                         ),
-                        title: Text(playlist[index]['song']!),
+                        title: Text(
+                          playlist[index]['song']!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(playlist[index]['artist']!),
+                            Text(
+                              playlist[index]['artist']!,
+                              style: const TextStyle(color: Colors.white),
+                            ),
                             Text(
                               currentlyPlayingIndex == index
                                   ? "${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}"
@@ -164,7 +251,10 @@ class _MusicScreenState extends State<MusicScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.skip_previous),
+                              icon: const Icon(
+                                Icons.skip_previous,
+                                color: Colors.white,
+                              ),
                               onPressed:
                                   index > 0
                                       ? () => _playLocalTrack(
@@ -178,6 +268,7 @@ class _MusicScreenState extends State<MusicScreen> {
                                 currentlyPlayingIndex == index && isPlaying
                                     ? Icons.pause
                                     : Icons.play_arrow,
+                                color: Colors.white,
                               ),
                               onPressed: () {
                                 _playLocalTrack(
@@ -187,7 +278,10 @@ class _MusicScreenState extends State<MusicScreen> {
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.skip_next),
+                              icon: const Icon(
+                                Icons.skip_next,
+                                color: Colors.white,
+                              ),
                               onPressed:
                                   index < playlist.length - 1
                                       ? () => _playLocalTrack(
