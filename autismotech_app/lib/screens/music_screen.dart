@@ -144,10 +144,10 @@ class _MusicScreenState extends State<MusicScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
-          "Music Therapy for Kids",
+          "Relaxing Music Playlist",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.teal,
+        backgroundColor: Color(0xFFB2FF59), // Light green
         elevation: 0,
         centerTitle: true,
         actions: [
@@ -176,7 +176,7 @@ class _MusicScreenState extends State<MusicScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Autism Music Therapy Playlist",
+                "Relaxing Music for Kids",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
