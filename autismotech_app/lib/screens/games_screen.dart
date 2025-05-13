@@ -52,7 +52,15 @@ class GamesScreen extends StatelessWidget {
                       icon: Icons.whatshot,
                       title: 'Angry Volcano',
                       color: Colors.redAccent,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => const AngryVolcanoGameScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _buildEmotionCard(
                       context,
@@ -130,6 +138,87 @@ class GameSectionScreen extends StatelessWidget {
         child: Text(
           'Game is starting...',
           style: TextStyle(fontSize: 24, color: Colors.black),
+        ),
+      ),
+    );
+  }
+}
+
+class AngryVolcanoGameScreen extends StatefulWidget {
+  const AngryVolcanoGameScreen({super.key});
+
+  @override
+  State<AngryVolcanoGameScreen> createState() => _AngryVolcanoGameScreenState();
+}
+
+class _AngryVolcanoGameScreenState extends State<AngryVolcanoGameScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Calm the Volcano"),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.redAccent, Colors.orangeAccent],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: Tween(begin: 1.0, end: 1.3).animate(
+                  CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+                ),
+                child: const Icon(
+                  Icons.whatshot,
+                  size: 100,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                "Take a deep breath",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30.0),
+                child: Text(
+                  "Follow the breathing animation. Tap the icon slowly while breathing in and out.",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
