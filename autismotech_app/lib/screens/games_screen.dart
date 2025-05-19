@@ -71,7 +71,9 @@ class GamesScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SurpriseScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const SurpriseScreen(),
+                          ),
                         );
                       },
                     ),
@@ -80,7 +82,9 @@ class GamesScreen extends StatelessWidget {
                       icon: Icons.self_improvement,
                       title: 'Calm Forest',
                       color: Colors.green,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, '/calmforest');
+                      },
                     ),
                   ],
                 ),

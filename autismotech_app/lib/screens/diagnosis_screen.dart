@@ -28,7 +28,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
       "field": "feature2",
     },
     {
-      "question": "Does your child point to indicate that he/she wants something?",
+      "question":
+          "Does your child point to indicate that he/she wants something?",
       "field": "feature3",
     },
     {
@@ -36,7 +37,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
       "field": "feature4",
     },
     {
-      "question": "Does your child pretend? (e.g., care for dolls, talk on a toy phone)",
+      "question":
+          "Does your child pretend? (e.g., care for dolls, talk on a toy phone)",
       "field": "feature5",
     },
     {
@@ -116,7 +118,10 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
           _showDialog("Prediction Result", resBody);
         }
       } else {
-        _showDialog("Error", "Server responded with status ${response.statusCode}:\n$resBody");
+        _showDialog(
+          "Error",
+          "Server responded with status ${response.statusCode}:\n$resBody",
+        );
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -127,16 +132,20 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
   void _showDialog(String title, String message) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
+      builder:
+          (_) => AlertDialog(
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -168,7 +177,12 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
     return radios;
   }
 
-  Widget _buildRadio(String fieldName, String label, int value, Color textColor) {
+  Widget _buildRadio(
+    String fieldName,
+    String label,
+    int value,
+    Color textColor,
+  ) {
     return RadioListTile<int>(
       title: Text(label, style: TextStyle(color: textColor)),
       value: value,
@@ -204,48 +218,50 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  ...questions.asMap().entries.map(
-                    (entry) {
-                      final index = entry.key;
-                      final q = entry.value;
-                      final isEven = index % 2 == 0;
+                  ...questions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final q = entry.value;
+                    final isEven = index % 2 == 0;
 
-                      final bgColor = isEven
-                          ? const Color(0xFFfde6b3) // Dark blue
-                          : const Color(0xFFfef7e6); // Light blue
-                      final textColor = Color(0xFF02557a);
+                    final bgColor =
+                        isEven
+                            ? const Color(0xFFfde6b3) // Dark blue
+                            : const Color(0xFFfef7e6); // Light blue
+                    final textColor = Color(0xFF02557a);
 
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        color: bgColor,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                q["question"],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      color: bgColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              q["question"],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
-                              const SizedBox(height: 4),
-                              ..._buildOptions(q["field"], textColor),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 4),
+                            ..._buildOptions(q["field"], textColor),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _pickImage,
-                    icon: const Icon(Icons.upload_file, color: Color(0xFFfcf5e6)),
+                    icon: const Icon(
+                      Icons.upload_file,
+                      color: Color(0xFFfcf5e6),
+                    ),
                     label: const Text("Select Child's Photo"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF35baf6),
@@ -264,37 +280,40 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  if (_pickedImage == null)
-                  const SizedBox(height: 15),
+                  if (_pickedImage == null) const SizedBox(height: 15),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0287c3),
                       foregroundColor: const Color(0xFFfcf5e6),
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 18,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 6,
                       shadowColor: Colors.black38,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFfcf5e6),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFfcf5e6),
+                              ),
+                            )
+                            : const Text(
+                              'DIAGNOSE',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'DIAGNOSE',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
                   ),
                 ],
               ),
