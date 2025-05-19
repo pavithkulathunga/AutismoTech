@@ -16,7 +16,7 @@ class GamesScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.purple, Colors.deepPurpleAccent],
+            colors: [Colors.purple, Color.fromRGBO(124, 77, 255, 1)],
           ),
         ),
         child: Padding(
