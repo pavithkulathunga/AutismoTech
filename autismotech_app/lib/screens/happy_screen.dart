@@ -323,7 +323,7 @@ class _HappyScreenState extends State<HappyScreen>
               ),
               child: Text(
                 _emotion.isNotEmpty
-                    ? 'Emotion: $_emotion (${(_emotionConfidence * 100).toStringAsFixed(0)}%)'
+                    ? 'Emotion: $_emotion'
                     : '',
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
