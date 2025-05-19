@@ -33,6 +33,8 @@ dependencies:
   confetti: ^0.7.0
   http: ^0.13.5
   image_picker: ^1.0.0
+  camera: ^0.10.5+5  # Updated camera package
+  cross_file: ^0.3.3+7  # Added cross_file package for XFile
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
