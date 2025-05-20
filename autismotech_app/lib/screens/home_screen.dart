@@ -507,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     icon: Icons.lightbulb,
                                     label: 'Attention Enhancing',
                                     color: AppColors.Attention,
-                                    routeName: '/emotion',
+                                    routeName: '/video-list',
                                     size: tileSize,
                                     iconSize: iconSize,
                                     fontSize: tileFontSize,

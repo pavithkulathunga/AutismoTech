@@ -7,6 +7,7 @@ import 'package:autismotech_app/screens/happy_screen.dart';
 import 'package:autismotech_app/screens/angry_screen.dart';
 import 'package:autismotech_app/screens/suprise_screen.dart';
 import 'package:autismotech_app/screens/calm_forest_screen.dart';
+import 'package:autismotech_app/screens/video_list_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -21,5 +22,6 @@ class AppRoutes {
     '/angry': (context) => const AngryScreen(),
     '/surprise': (context) => const SurpriseScreen(),
     '/calmforest': (context) => const CalmForestScreen(),
+    '/video-list': (context) => const VideoListScreen(),
   };
 }
