@@ -210,127 +210,287 @@ class _HappyScreenState extends State<HappyScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Happy Hills - Color Match"),
+        title: const Text(
+          "Happy Hills - Color Match",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            fontFamily: 'Comic Sans MS',
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 255, 145, 0),
+        backgroundColor: const Color(0xFFFF9100),
+        elevation: 8,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: ConfettiWidget(
-                    confettiController: _confettiController,
-                    blastDirectionality: BlastDirectionality.explosive,
-                    shouldLoop: false,
-                    colors: const [
-                      Colors.red,
-                      Colors.green,
-                      Colors.blue,
-                      Colors.yellow,
-                    ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFE0B2), Color(0xFFFFFFFF)],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConfettiWidget(
+                      confettiController: _confettiController,
+                      blastDirectionality: BlastDirectionality.explosive,
+                      shouldLoop: false,
+                      maxBlastForce: 7,
+                      minBlastForce: 3,
+                      emissionFrequency: 0.05,
+                      numberOfParticles: 30,
+                      gravity: 0.2,
+                      colors: const [
+                        Colors.red,
+                        Colors.green,
+                        Colors.blue,
+                        Colors.yellow,
+                        Colors.pink,
+                        Colors.purple,
+                      ],
+                    ),
                   ),
-                ),
-                if (_gameStarted)
-                  Column(
-                    children: [
-                      Text(
-                        'Time left: $_secondsLeft s',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Can you tap the color that matches?",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      const Text(
-                        "Match this color:",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: targetColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black, width: 2),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Wrap(
-                        spacing: 20,
-                        runSpacing: 20,
-                        children:
-                            colors.map((color) {
-                              return GestureDetector(
-                                onTap: () => _checkMatch(color),
-                                child: MouseRegion(
-                                  onEnter: (_) {
-                                    setState(() {});
-                                  },
-                                  onExit: (_) {
-                                    setState(() {});
-                                  },
-                                  child: AnimatedBuilder(
-                                    animation: _scaleController,
-                                    builder: (context, child) {
-                                      return Transform.scale(
-                                        scale: _scaleAnimation.value,
-                                        child: Container(
-                                          width: 70,
-                                          height: 70,
-                                          decoration: BoxDecoration(
-                                            color: color,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.grey.shade700,
-                                              width: 2,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                  if (_gameStarted)
+                    Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.3),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.timer,
+                                color: Color(0xFFFF9100),
+                                size: 24,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Time: $_secondsLeft s',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF5D4037),
+                                  fontFamily: 'Comic Sans MS',
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                              const SizedBox(width: 20),
+                              const Icon(
+                                Icons.stars,
+                                color: Color(0xFFFF9100),
+                                size: 24,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Score: $score',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF5D4037),
+                                  fontFamily: 'Comic Sans MS',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Can you tap the matching color?",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF5D4037),
+                            fontFamily: 'Comic Sans MS',
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Find this color:",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontFamily: 'Comic Sans MS',
+                            color: Color(0xFF5D4037),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: targetColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.black, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: targetColor.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.search,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: Wrap(
+                            spacing: 25,
+                            runSpacing: 25,
+                            alignment: WrapAlignment.center,
+                            children:
+                                colors.map((color) {
+                                  return GestureDetector(
+                                    onTap: () => _checkMatch(color),
+                                    child: MouseRegion(
+                                      onEnter: (_) {
+                                        setState(() {});
+                                      },
+                                      onExit: (_) {
+                                        setState(() {});
+                                      },
+                                      child: AnimatedBuilder(
+                                        animation: _scaleController,
+                                        builder: (context, child) {
+                                          return Transform.scale(
+                                            scale: _scaleAnimation.value,
+                                            child: Container(
+                                              width: 80,
+                                              height: 80,
+                                              decoration: BoxDecoration(
+                                                color: color,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Colors.black,
+                                                  width: 3,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: color.withOpacity(
+                                                      0.5,
+                                                    ),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            // Emotion display with emoji in top-left corner
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    _getEmotionEmoji(),
+                    const SizedBox(width: 8),
+                    Text(
+                      _emotion.isNotEmpty ? _emotion : 'No emotion',
+                      style: const TextStyle(
+                        color: Color(0xFF5D4037),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Comic Sans MS',
                       ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          // Emotion display in the top-left corner
-          Positioned(
-            top: 10,
-            left: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                _emotion.isNotEmpty
-                    ? 'Emotion: $_emotion'
-                    : '',
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // Helper method to display appropriate emoji based on detected emotion
+  Widget _getEmotionEmoji() {
+    switch (_emotion.toLowerCase()) {
+      case 'happy':
+        return const Text('😃', style: TextStyle(fontSize: 24));
+      case 'sad':
+        return const Text('😢', style: TextStyle(fontSize: 24));
+      case 'angry':
+        return const Text('😠', style: TextStyle(fontSize: 24));
+      case 'surprised':
+        return const Text('😲', style: TextStyle(fontSize: 24));
+      case 'neutral':
+        return const Text('😐', style: TextStyle(fontSize: 24));
+      case 'fear':
+        return const Text('😨', style: TextStyle(fontSize: 24));
+      case 'disgust':
+        return const Text('🤢', style: TextStyle(fontSize: 24));
+      default:
+        return const Text('🙂', style: TextStyle(fontSize: 24));
+    }
   }
 }
