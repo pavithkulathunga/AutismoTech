@@ -396,11 +396,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   animation: _shimmerController,
                   builder: (context, child) {
                     return ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return LinearGradient(
+                      shaderCallback: (Rect bounds) {                        return LinearGradient(
                           colors: [
-                            Colors.white.withOpacity(0.8 + _pulseController.value * 0.2),
-                            Colors.white.withOpacity(0.6 + _pulseController.value * 0.2),
+                            Colors.white.withOpacity(0.5 + _pulseController.value * 0.1),
+                            Colors.white.withOpacity(0.3 + _pulseController.value * 0.1),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -918,29 +917,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 24),                    children: [
-                      _buildMenuTile(
-                        icon: Icons.home,
-                        title: 'Home',
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      _buildMenuTile(
-                        icon: Icons.medical_services_rounded,
-                        title: 'Diagnosis',
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, '/diagnosis');
-                        },
-                      ),
-                      _buildMenuTile(
-                        icon: Icons.face,
-                        title: 'Emotion Detection',
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, '/emotion');
-                        },
-                      ),
                       _buildMenuTile(
                         icon: Icons.help_outline,
                         title: 'Help & Support',
