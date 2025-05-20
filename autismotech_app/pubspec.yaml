@@ -42,6 +42,7 @@ dependencies:
   url_launcher: ^6.3.1
   # spotify_sdk: ^2.3.0  # Temporarily removed due to Gradle build failure related to missing ':spotify-app-remote' module. Consider resolving the missing module or checking for updates to spotify_sdk before re-enabling.
   audioplayers: ^5.2.1
+  audioplayers_windows: ^3.1.0
   video_player: ^2.7.2
 
 flutter_launcher_icons:
