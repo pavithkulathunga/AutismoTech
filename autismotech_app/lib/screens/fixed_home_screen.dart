@@ -345,7 +345,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   },
                 ),
               ],
-            ),            actions: [
+            ),
+            actions: [
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
                 splashRadius: 24,
@@ -358,6 +359,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       backgroundColor: AppColors.accent1,
                     ),
                   );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings, color: Colors.white),
+                splashRadius: 24,
+                onPressed: () {
+                  // Add settings functionality
+                  _showSettingsDialog(context);
                 },
               ),
             ],
@@ -489,7 +498,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 crossAxisSpacing: spacing,
                                 mainAxisSpacing: spacing,
                                 shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),                                children: [
+                                physics: const NeverScrollableScrollPhysics(),
+                                children: [
                                   _buildAnimatedTile(
                                     context,
                                     index: 0,
@@ -519,6 +529,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     label: 'Emotion Detection',
                                     color: AppColors.Emotion,
                                     routeName: '/emotion',
+                                    size: tileSize,
+                                    iconSize: iconSize,
+                                    fontSize: tileFontSize,
+                                  ),
+                                  _buildAnimatedTile(
+                                    context,
+                                    index: 3,
+                                    icon: Icons.music_note,
+                                    label: 'Music Therapy',
+                                    color: AppColors.Music,
+                                    routeName: '/music',
+                                    size: tileSize,
+                                    iconSize: iconSize,
+                                    fontSize: tileFontSize,
+                                  ),
+                                  _buildAnimatedTile(
+                                    context,
+                                    index: 4,
+                                    icon: Icons.games,
+                                    label: 'Interactive Games',
+                                    color: AppColors.Games,
+                                    routeName: '/games',
+                                    size: tileSize,
+                                    iconSize: iconSize,
+                                    fontSize: tileFontSize,
+                                  ),
+                                  _buildAnimatedTile(
+                                    context,
+                                    index: 5,
+                                    icon: Icons.favorite,
+                                    label: 'Happy Mood',
+                                    color: Colors.pink,
+                                    routeName: '/happy',
                                     size: tileSize,
                                     iconSize: iconSize,
                                     fontSize: tileFontSize,
@@ -662,7 +705,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       );
                     },
-                  ),                  const SizedBox(width: 8),
+                  ),
+                  const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       greeting,
@@ -685,14 +729,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
             ],
-          ),        ),
-        SizedBox(
-          width: 110, // Fixed width for the image
-          child: Image.asset(
-            imagePath,
-            height: 120,
-            fit: BoxFit.contain,
           ),
+        ),
+        Image.asset(
+          imagePath,
+          height: 120,
+          fit: BoxFit.contain,
         ),
       ],
     );
@@ -791,55 +833,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      ),                      // Content
+                      ),
+
+                      // Content
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Icon with glow effect
-                            Container(
-                              alignment: Alignment.center,
-                              child: ShaderMask(
-                                shaderCallback: (Rect bounds) {
-                                  return RadialGradient(
-                                    center: const Alignment(0.1, 0.1),
-                                    radius: 0.8,
-                                    colors: [
-                                      Colors.white,
-                                      Colors.white.withOpacity(0.8),
-                                    ],
-                                  ).createShader(bounds);
-                                },
-                                child: Icon(
-                                  icon,
-                                  size: iconSize,
-                                  color: Colors.white,
-                                ),
+                            ShaderMask(
+                              shaderCallback: (Rect bounds) {
+                                return RadialGradient(
+                                  center: const Alignment(0.1, 0.1),
+                                  radius: 0.8,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withOpacity(0.8),
+                                  ],
+                                ).createShader(bounds);
+                              },
+                              child: Icon(
+                                icon,
+                                size: iconSize,
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 12),
-                            // Label with subtle animation and proper centering
-                            Container(
-                              alignment: Alignment.center,
-                              width: double.infinity,
-                              child: Text(
-                                label,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: fontSize,
-                                  letterSpacing: 0.5,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      offset: const Offset(0, 2),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
+                            // Label with subtle animation
+                            Text(
+                              label,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: fontSize,
+                                letterSpacing: 0.5,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -917,7 +953,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Expanded(
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),                    children: [
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    children: [
                       _buildMenuTile(
                         icon: Icons.home,
                         title: 'Home',
@@ -939,6 +976,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, '/emotion');
+                        },
+                      ),
+                      _buildMenuTile(
+                        icon: Icons.music_note,
+                        title: 'Music Therapy',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/music');
+                        },
+                      ),
+                      _buildMenuTile(
+                        icon: Icons.games,
+                        title: 'Interactive Games',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/games');
                         },
                       ),
                       _buildMenuTile(
@@ -1014,11 +1067,92 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ],
             ),
-          ),        ),
+          ),
+        ),
       ),
     );
   }
 
+  // Show settings dialog with animation
+  void _showSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 300),
+        tween: Tween<double>(begin: 0.8, end: 1.0),
+        curve: Curves.easeOutBack,
+        builder: (context, scale, child) {
+          return Transform.scale(
+            scale: scale,
+            child: child,
+          );
+        },
+        child: AlertDialog(
+          backgroundColor: AppColors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.settings, color: Colors.white),
+              SizedBox(width: 10),
+              Text(
+                'Settings',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSettingSwitch('Notifications', true, (value) {}),
+              _buildSettingSwitch('Dark Mode', true, (value) {}),
+              _buildSettingSwitch('Sound Effects', true, (value) {}),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('CLOSE'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );  
+  }
+  
+  // Helper widget for settings options
+  Widget _buildSettingSwitch(
+    String title,
+    bool isEnabled,
+    Function(bool) onChange,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+            ),
+          ),
+          Switch(
+            value: isEnabled,
+            onChanged: onChange,
+            activeColor: AppColors.accent2,
+          ),
+        ],
+      ),
+    );
+  }
+  
   // Show about dialog with animation
   void _showAboutDialog(BuildContext context) {
     showDialog(
@@ -1124,6 +1258,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   icon: Icons.face,
                   title: 'Emotion Detection',
                   description: 'Help your child recognize and understand different emotions.',
+                ),
+                _buildHelpItem(
+                  icon: Icons.music_note,
+                  title: 'Music Therapy',
+                  description: 'Calming music tracks to help reduce anxiety and improve focus.',
+                ),
+                _buildHelpItem(
+                  icon: Icons.games,
+                  title: 'Interactive Games',
+                  description: 'Games designed to improve attention span and cognitive skills.',
                 ),
                 const SizedBox(height: 16),
                 Center(
