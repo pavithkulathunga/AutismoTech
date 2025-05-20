@@ -488,7 +488,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 crossAxisSpacing: spacing,
                                 mainAxisSpacing: spacing,
                                 shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),                                children: [
+                                physics: const NeverScrollableScrollPhysics(),
+                                children: [
                                   _buildAnimatedTile(
                                     context,
                                     index: 0,
@@ -518,6 +519,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     label: 'Emotion Detection',
                                     color: AppColors.Emotion,
                                     routeName: '/emotion',
+                                    size: tileSize,
+                                    iconSize: iconSize,
+                                    fontSize: tileFontSize,
+                                  ),
+                                  _buildAnimatedTile(
+                                    context,
+                                    index: 3,
+                                    icon: Icons.trending_up,
+                                    label: 'Progress Prediction',
+                                    color: const Color(0xFF5C6BC0), // Indigo color
+                                    routeName: '/progress-prediction',
                                     size: tileSize,
                                     iconSize: iconSize,
                                     fontSize: tileFontSize,
@@ -1051,8 +1063,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: const Text('CLOSE'),
               ),
             ],
-          ),
-        ),
+          ),        ),
       ),
     );
   }
@@ -1101,6 +1112,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   title: 'Emotion Detection',
                   description: 'Help your child recognize and understand different emotions.',
                 ),
+                _buildHelpItem(
+                  icon: Icons.trending_up,
+                  title: 'Progress Prediction',
+                  description: 'Predict and track autism development progress for infants over time.',
+                ),
                 const SizedBox(height: 16),
                 Center(
                   child: TextButton(
@@ -1111,8 +1127,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ],
-            ),
-          ),
+            ),        ),
         ),
       ),
     );
