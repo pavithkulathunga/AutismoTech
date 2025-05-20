@@ -563,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               return Transform.scale(
                                 scale: 1.0 + (_pulseController.value * 0.1),
                                 child: Image.asset(
-                                  'assets/images/butterfly.png',
+                                  'assets/icons/app_icon.png',
                                   height: 120,
                                   fit: BoxFit.contain,
                                 ),
@@ -1031,7 +1031,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Icon(Icons.info_outline, color: Colors.white),
               SizedBox(width: 10),
               Text(
-                'About Autismo-Tech',
+                'About',
                 style: TextStyle(color: Colors.white),
               ),
             ],
@@ -1040,7 +1040,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/images/butterfly.png',
+                'assets/icons/app_icon.png',
                 height: 80,
                 width: 80,
               ),
@@ -1063,7 +1063,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: const Text('CLOSE'),
               ),
             ],
-          ),        ),
+          ),
+        ),
       ),
     );
   }
@@ -1127,7 +1128,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ],
-            ),        ),
+            ),
+          ),
         ),
       ),
     );
