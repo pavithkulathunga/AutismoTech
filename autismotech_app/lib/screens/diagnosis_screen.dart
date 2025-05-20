@@ -384,9 +384,10 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
     
     setState(() => _isLoading = true);
 
+    final String apiUrl = 'localhost:8080';
+
     final uri = Uri.parse(
-      'https://autismotec-models.onrender.com/asd_diagnose/predict',
-      // 'https://autismo-tech-f81c1344ed86.herokuapp.com/asd_diagnose/predict',
+      'http://$apiUrl/asd_diagnose/predict',
     );
     final request = http.MultipartRequest("POST", uri);
 
