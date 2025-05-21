@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:audioplayers/audioplayers.dart';
+
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
 
@@ -8,24 +10,144 @@ class MusicScreen extends StatefulWidget {
 }
 
 class _MusicScreenState extends State<MusicScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   List<Map<String, String>> playlist = [
-    {'song': 'Song 1', 'artist': 'Artist 1', 'image': 'assets/song1.jpg'},
-    {'song': 'Song 2', 'artist': 'Artist 2', 'image': 'assets/song2.jpg'},
-    {'song': 'Song 3', 'artist': 'Artist 3', 'image': 'assets/song3.jpg'},
-    // Add more songs
+    {
+      'song': 'Rainbow Journey',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track1.jpeg',
+      'file': 'assets/music/m1.mp3',
+    },
+    {
+      'song': 'Gentle Breeze',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track2.jpg',
+      'file': 'assets/music/m2.mp3',
+    },
+    {
+      'song': 'Ocean Whispers',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track3.jpg',
+      'file': 'assets/music/m3.mp3',
+    },
+    {
+      'song': 'Starlight Dreams',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track4.jpg',
+      'file': 'assets/music/m4.mp3',
+    },
+    {
+      'song': 'Peaceful Meadow',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track5.jpg',
+      'file': 'assets/music/m5.mp3',
+    },
+    {
+      'song': 'Magic Clouds',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track6.jpg',
+      'file': 'assets/music/m6.mp3',
+    },
+    {
+      'song': 'Sunny Smiles',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track7.jpg',
+      'file': 'assets/music/m7.mp3',
+    },
+    {
+      'song': 'Moonlight Hugs',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track8.jpg',
+      'file': 'assets/music/m8.mp3',
+    },
+    {
+      'song': 'Happy Heartbeats',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track9.jpg',
+      'file': 'assets/music/m9.mp3',
+    },
+    {
+      'song': 'Calm Forest',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track10.jpg',
+      'file': 'assets/music/m10.mp3',
+    },
+    {
+      'song': 'Bubble Parade',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track11.jpeg',
+      'file': 'assets/music/m11.mp3',
+    },
+    {
+      'song': 'Cozy Cuddles',
+      'artist': 'AutismoTech',
+      'image': 'assets/music/track12.jpg',
+      'file': 'assets/music/m12.mp3',
+    },
   ];
 
-  bool isPlaying = false; // Variable to track play/pause state
+  int? currentlyPlayingIndex; // Track index of currently playing song
+  bool isPlaying = false;
+  Duration currentPosition = Duration.zero;
+  Duration totalDuration = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _audioPlayer.onDurationChanged.listen((duration) {
+      setState(() {
+        totalDuration = duration;
+      });
+    });
+
+    _audioPlayer.onPositionChanged.listen((position) {
+      setState(() {
+        currentPosition = position;
+      });
+    });
+
+    _audioPlayer.onPlayerComplete.listen((event) {
+      setState(() {
+        isPlaying = false;
+      });
+    });
+  }
+
+  Future<void> _playLocalTrack(String filePath, int index) async {
+    final fileName = filePath.split('/').last;
+    if (currentlyPlayingIndex == index && isPlaying) {
+      await _audioPlayer.pause();
+      setState(() {
+        isPlaying = false;
+      });
+    } else {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('music/$fileName'));
+      setState(() {
+        currentlyPlayingIndex = index;
+        isPlaying = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
-          "Music Playlist",
+          "Relaxing Music Playlist",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color(0xFFB2FF59), // Light green
         elevation: 0,
         centerTitle: true,
         actions: [
@@ -37,57 +159,155 @@ class _MusicScreenState extends State<MusicScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: ListView.builder(
-          itemCount: playlist.length,
-          itemBuilder: (context, index) {
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 30, 30, 30),
+              Color.fromARGB(255, 43, 43, 43),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Relaxing Music for Kids",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
               ),
-              elevation: 10,
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 15,
-                ),
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage(playlist[index]['image']!),
-                  radius: 35,
-                ),
-                title: Text(
-                  playlist[index]['song']!,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  playlist[index]['artist']!,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                trailing: IconButton(
-                  icon: Icon(
-                    isPlaying
-                        ? Icons.pause_circle_filled
-                        : Icons.play_circle_fill,
-                    color: Colors.deepPurple,
-                    size: 35,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      isPlaying = !isPlaying;
-                    });
-                    // Add functionality to play/pause music here
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: playlist.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      color:
+                          [
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
+                            Color.from(
+                              alpha: 1,
+                              red: 0,
+                              green: 0.392,
+                              blue: 0.098,
+                            ),
+                          ][index % 3],
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        ),
+                        leading: CircleAvatar(
+                          radius: 30,
+                          backgroundImage: AssetImage(
+                            playlist[index]['image']!,
+                          ),
+                        ),
+                        title: Text(
+                          playlist[index]['song']!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              playlist[index]['artist']!,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            Text(
+                              currentlyPlayingIndex == index
+                                  ? "${_formatDuration(currentPosition)} / ${_formatDuration(totalDuration)}"
+                                  : "",
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.skip_previous,
+                                color: Colors.white,
+                              ),
+                              onPressed:
+                                  index > 0
+                                      ? () => _playLocalTrack(
+                                        playlist[index - 1]['file']!,
+                                        index - 1,
+                                      )
+                                      : null,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                currentlyPlayingIndex == index && isPlaying
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                _playLocalTrack(
+                                  playlist[index]['file']!,
+                                  index,
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.skip_next,
+                                color: Colors.white,
+                              ),
+                              onPressed:
+                                  index < playlist.length - 1
+                                      ? () => _playLocalTrack(
+                                        playlist[index + 1]['file']!,
+                                        index + 1,
+                                      )
+                                      : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
   }
 }

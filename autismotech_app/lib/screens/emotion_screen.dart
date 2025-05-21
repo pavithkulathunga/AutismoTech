@@ -80,8 +80,8 @@ class _EmotionScreenState extends State<EmotionScreen> {
                       style: TextStyle(fontSize: 18),
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/music'); /////link to games
-
+                      Navigator.pushNamed(context, '/games');
+                      /////link to games screen
                       // Navigate to games screen
                     },
                   ),
