@@ -21,12 +21,14 @@ class AttentionScreen extends StatefulWidget {
   State<AttentionScreen> createState() => _AttentionScreenState();
 }
 
-class _AttentionScreenState extends State<AttentionScreen> with TickerProviderStateMixin {
+class _AttentionScreenState extends State<AttentionScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   VideoPlayerController? _videoController;
   CameraController? _cameraController;
   Timer? _captureTimer;
+  Timer? _videoPlaybackTimer; // New timer just for ensuring video playback
   bool _isCapturing = false;
-  
+
   // Animation controllers
   late AnimationController _pulseController;
   late AnimationController _floatingController;
@@ -34,7 +36,7 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
   late AnimationController _bounceController;
   late AnimationController _rotateController;
   late AnimationController _scaleController;
-  
+
   // Animation values
   late Animation<double> _pulseAnimation;
   late Animation<Offset> _floatingAnimation;
@@ -42,17 +44,17 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
   late Animation<Offset> _bounceAnimation;
   late Animation<double> _rotateAnimation;
   late Animation<double> _scaleAnimation;
-  
+
   // UI state tracking
   bool _isFocused = true;
   bool _isVideoPlaying = false;
   double _videoProgress = 0.0;
   bool _showFocusedCelebration = false;
   int _focusedStreak = 0;
-  
+
   // Sensory-friendly color modes  // Color options for sensory-friendly display
   final Color _backgroundColorWarm = const Color(0xFFFFF8E1);
-  
+
   // Colors for visual aids
   final List<Color> _rainbowColors = [
     Colors.red,
@@ -63,40 +65,45 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
     Colors.indigo,
     Colors.purple,
   ];
-  
+
   int _colorIndex = 0;
   Timer? _colorChangeTimer;
-  
-  final AudioPlayer _audioPlayer = AudioPlayer()
-    ..setAudioContext(AudioContext(
-      android: AudioContextAndroid(
-        isSpeakerphoneOn: true,
-        stayAwake: false,
-        contentType: AndroidContentType.speech,
-        usageType: AndroidUsageType.media,
-        audioFocus: AndroidAudioFocus.gainTransientMayDuck,
-      ),
-      iOS: AudioContextIOS(
-        category: AVAudioSessionCategory.ambient,
-        options: [AVAudioSessionOptions.mixWithOthers],
-      ),
-    ));
+
+  final AudioPlayer _audioPlayer =
+      AudioPlayer()..setAudioContext(
+        AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            stayAwake: false,
+            contentType: AndroidContentType.speech,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.ambient,
+            options: [AVAudioSessionOptions.mixWithOthers],
+          ),
+        ),
+      );
 
   @override
   void initState() {
     super.initState();
-    
+
+    // Register for lifecycle events
+    WidgetsBinding.instance.addObserver(this);
+
     // Initialize animations
     _setupAnimations();
-    
+
     // Start color cycling for interactive elements
     _startColorCycling();
-    
+
     // Start camera and video player
     _initializeFrontCamera();
     _initializeVideoPlayer();
   }
-  
+
   void _startColorCycling() {
     _colorChangeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       setState(() {
@@ -104,94 +111,79 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       });
     });
   }
-  
+
   void _setupAnimations() {
     // Pulsing animation for attention indicators
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(
-        parent: _pulseController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    
+
     // Floating animation for elements
     _floatingController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    
+
     _floatingAnimation = Tween<Offset>(
       begin: const Offset(0, 0),
       end: const Offset(0, -0.05),
-    ).animate(CurvedAnimation(
-      parent: _floatingController,
-      curve: Curves.easeInOut,
-    ));
-    
+    ).animate(
+      CurvedAnimation(parent: _floatingController, curve: Curves.easeInOut),
+    );
+
     // Fade animation for alerts
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _fadeController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
-    
+
     // Bounce animation for celebrations
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    
+
     _bounceAnimation = Tween<Offset>(
       begin: const Offset(0, 0),
       end: const Offset(0, -0.2),
-    ).animate(CurvedAnimation(
-      parent: _bounceController,
-      curve: Curves.elasticOut,
-    ));
-    
+    ).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.elasticOut),
+    );
+
     // Rotation animation for visual interest
     _rotateController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 5),
     )..repeat();
-    
+
     _rotateAnimation = Tween<double>(
       begin: 0.0,
       end: 2 * pi,
-    ).animate(CurvedAnimation(
-      parent: _rotateController,
-      curve: Curves.linear,
-    ));
-    
+    ).animate(CurvedAnimation(parent: _rotateController, curve: Curves.linear));
+
     // Scale animation for UI elements
     _scaleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOutBack,
-    ));
-    
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeOutBack),
+    );
+
     // Start scale-in animation for UI
     _scaleController.forward();
   }
-  
+
   Future<void> _initializeFrontCamera() async {
     try {
       // Enhanced platform detection that works reliably in Chrome
@@ -206,19 +198,24 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         isWebPlatform = true;
         print("Running in web platform - Chrome detection active");
       }
-      
+
       // Get available cameras with timeout to prevent hanging
       final cameras = await availableCameras().timeout(
         const Duration(seconds: 5),
         onTimeout: () {
-          throw TimeoutException('Camera discovery timed out - browser permission issue detected');
-        }
+          throw TimeoutException(
+            'Camera discovery timed out - browser permission issue detected',
+          );
+        },
       );
-      
+
       if (cameras.isEmpty) {
-        throw CameraException('noCamerasAvailable', 'No cameras found on device');
+        throw CameraException(
+          'noCamerasAvailable',
+          'No cameras found on device',
+        );
       }
-      
+
       // Find the front camera
       CameraDescription? frontCamera;
       for (final camera in cameras) {
@@ -227,26 +224,30 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
           break;
         }
       }
-      
+
       // Fall back to first camera if no front camera is found
       frontCamera ??= cameras.first;
-      
+
       // Use appropriate settings based on platform
       _cameraController = CameraController(
         frontCamera,
-        isWebPlatform ? ResolutionPreset.low : ResolutionPreset.medium, // Lower resolution for web
+        isWebPlatform
+            ? ResolutionPreset.low
+            : ResolutionPreset.medium, // Lower resolution for web
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
-      
+
       // Initialize with timeout to prevent hanging on permission dialogs
       await _cameraController!.initialize().timeout(
         const Duration(seconds: 8),
         onTimeout: () {
-          throw TimeoutException('Camera initialization timed out - check browser permissions');
-        }
+          throw TimeoutException(
+            'Camera initialization timed out - check browser permissions',
+          );
+        },
       );
-      
+
       if (mounted) {
         setState(() {});
         print("Camera successfully initialized");
@@ -257,49 +258,130 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       _setupCameraFallbackForTesting();
     }
   }
+
   Future<void> _initializeVideoPlayer() async {
     _videoController = VideoPlayerController.asset(widget.videoPath);
     await _videoController!.initialize();
-    await _videoController!.play();
-    _startPeriodicCapture();
-    
-    // Set up video progress tracking
+
+    // Set up video progress tracking with enhanced continuous playback
     _videoController!.addListener(() {
+      // CRITICAL: Force continuous playback - highest priority
+      // This prevents any pausing of the video
+      if (!_videoController!.value.isPlaying &&
+          _videoController!.value.isInitialized &&
+          !_videoController!.value.isCompleted) {
+        _videoController!.play();
+        print("Forcing video to continue playing");
+      }
+
+      // Only update _isVideoPlaying if it's different from current value to avoid rebuild loops
       if (_videoController!.value.isPlaying != _isVideoPlaying) {
         setState(() {
           _isVideoPlaying = _videoController!.value.isPlaying;
         });
+
+        print(
+          "Video playing state changed to: ${_videoController!.value.isPlaying}",
+        );
       }
-      
+
       // Update video progress
-      if (_videoController!.value.isInitialized && _videoController!.value.duration.inMilliseconds > 0) {
-        setState(() {
-          _videoProgress = _videoController!.value.position.inMilliseconds / 
-                          _videoController!.value.duration.inMilliseconds;
-        });
+      if (_videoController!.value.isInitialized &&
+          _videoController!.value.duration.inMilliseconds > 0) {
+        final newProgress =
+            _videoController!.value.position.inMilliseconds /
+            _videoController!.value.duration.inMilliseconds;
+        // Only update if progress has changed significantly to avoid unnecessary rebuilds
+        if ((newProgress - _videoProgress).abs() > 0.01) {
+          setState(() {
+            _videoProgress = newProgress;
+          });
+        }
       }
-      
-      // Loop video when completed
-      if (_videoController!.value.position >= _videoController!.value.duration) {
+
+      // Loop video when completed - improved to avoid multiple calls
+      if (_videoController!.value.position >=
+          _videoController!.value.duration -
+              const Duration(milliseconds: 300)) {
+        print("Video reached end - looping");
         _videoController!.seekTo(Duration.zero);
         _videoController!.play();
       }
     });
+
+    // Always set looping to true to ensure continuous playback
+    _videoController!.setLooping(true);
+
+    // Set a higher volume to ensure better audio experience
+    _videoController!.setVolume(1.0);
+
+    // Start playing and ensure it continues
+    await _videoController!.play();    // Setup a dedicated timer to ensure video keeps playing
+    // This will run more frequently than the capture timer
+    _videoPlaybackTimer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
+      if (_videoController != null && 
+          _videoController!.value.isInitialized && 
+          !_videoController!.value.isPlaying && 
+          !_videoController!.value.isCompleted) {
+        print("Continuous video check: Video not playing, restarting");
+        _videoController!.play();
+      }
+    });
+    
+    _startPeriodicCapture();
     
     setState(() {
       _isVideoPlaying = true;
     });
+    
+    // Extra check to make sure video starts playing
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        _ensureVideoIsPlaying();
+      }
+    });
+    
+    // Additional regular checks to ensure video keeps playing
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        _ensureVideoIsPlaying();
+      }
+    });
   }
+
   void _startPeriodicCapture() {
-    _captureTimer = Timer.periodic(Duration(seconds: 5), (_) async {
-      if (_isCapturing || !_videoController!.value.isPlaying) return;
+    _captureTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      // Don't capture if already capturing
+      if (_isCapturing) {
+        print("Skipping capture: already capturing");
+        return;
+      }
+
+      // Force continuous video playback (highest priority)
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        print("Video not playing, restarting playback");
+        _videoController!.play(); // No await to prevent blocking
+      }
+
       _isCapturing = true;
 
       try {
-        if (_cameraController != null && _cameraController!.value.isInitialized) {
+        // Another check to ensure video stays playing before camera capture
+        if (_videoController != null && !_videoController!.value.isPlaying) {
+          _videoController!.play();
+        }
+
+        if (_cameraController != null &&
+            _cameraController!.value.isInitialized) {
           // Camera is available, use real image capture
           final file = await _cameraController!.takePicture();
           final bytes = await File(file.path).readAsBytes();
+
+          // Check again after picture capture
+          if (_videoController != null && !_videoController!.value.isPlaying) {
+            _videoController!.play();
+          }
+
           await _sendToFlaskAPI(bytes);
         } else {
           // Camera not available, use test data instead
@@ -311,14 +393,66 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         await _sendToFlaskAPIWithTestData();
       } finally {
         _isCapturing = false;
+
+        // Final check to ensure video is still playing after all processing
+        if (_videoController != null && !_videoController!.value.isPlaying) {
+          _videoController!.play();
+        }
       }
     });
   }
 
+  @override
+  void dispose() {
+    // Unregister from lifecycle events
+    WidgetsBinding.instance.removeObserver(this);
+
+    _videoController?.dispose();
+    _cameraController?.dispose();
+    _captureTimer?.cancel();
+    _videoPlaybackTimer?.cancel(); // Cancel the video playback timer
+    _colorChangeTimer?.cancel();
+    _audioPlayer.dispose();
+    _pulseController.dispose();
+    _floatingController.dispose();
+    _fadeController.dispose();
+    _bounceController.dispose();
+    _rotateController.dispose();
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  // No changes needed to the didChangeAppLifecycleState method
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Resume video playback when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      if (_videoController != null &&
+          _videoController!.value.isInitialized &&
+          !_videoController!.value.isPlaying) {
+        print("App resumed - ensuring video is playing");
+        _videoController!.play();
+      }
+    }
+  }
+
   Future<void> _sendToFlaskAPI(Uint8List imageBytes) async {
+    // First ensure video keeps playing before API call
+    if (_videoController != null && !_videoController!.value.isPlaying) {
+      _videoController!.play();
+    }
+
     final uri = Uri.parse('http://192.168.1.5:5000/attention/track_focus');
     final request = http.MultipartRequest('POST', uri)
-      ..files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: 'image.jpg'));
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: 'image.jpg',
+        ),
+      );
 
     try {
       final response = await request.send();
@@ -327,7 +461,12 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       final json = jsonDecode(resBody);
 
       final isFocused = json['focused'] == true;
-      
+
+      // Ensure video is still playing after API response
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
+
       // Track focus streak
       if (isFocused && !_isFocused) {
         // Just regained focus
@@ -338,22 +477,28 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         // Continued focus
         setState(() {
           _focusedStreak++;
-          
+
           // Celebrate every 3 consecutive focused checks
           if (_focusedStreak % 3 == 0) {
             _showFocusedCelebration = true;
             _bounceController.reset();
             _bounceController.forward();
-            
+
             // Hide celebration after 3 seconds
             Future.delayed(const Duration(seconds: 3), () {
               if (mounted) {
                 setState(() {
                   _showFocusedCelebration = false;
                 });
+
+                // Ensure video is still playing after celebration
+                if (_videoController != null &&
+                    !_videoController!.value.isPlaying) {
+                  _videoController!.play();
+                }
               }
             });
-            
+
             // Play a short positive sound
             _audioPlayer.stop();
             _audioPlayer.play(
@@ -370,17 +515,27 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
           _showFocusedCelebration = false;
         });
       }
-      
+
       setState(() {
         _isFocused = isFocused;
       });
-      
+
       if (!isFocused) {
         await _playAttentionAlert();
+      }
+
+      // Final check to ensure video is playing after all processing
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
       }
     } catch (e, stack) {
       print("API error: $e");
       print("Stacktrace: $stack");
+
+      // Even on error, ensure video is playing
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
     }
   }
 
@@ -392,18 +547,23 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         mode: PlayerMode.lowLatency,
         volume: 1.0,
       );
-      
+
+      // Ensure video keeps playing
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
+
       // Trigger fade-in animation for alert
       _fadeController.forward(from: 0.0);
-      
+
       // Visual stimulus to regain attention - pulse animation
       _pulseController.stop();
       _pulseController.reset();
       _pulseController.repeat(reverse: true);
-      
+
       // Keep the alert visible for a while
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Fade out the alert
       _fadeController.reverse();
     } catch (e) {
@@ -414,17 +574,18 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
   // Fallback method for testing in Chrome when camera access is problematic
   void _setupCameraFallbackForTesting() {
     final timestamp = DateTime.now();
-    final formattedTime = '${timestamp.hour}:${timestamp.minute}:${timestamp.second}';
-    
+    final formattedTime =
+        '${timestamp.hour}:${timestamp.minute}:${timestamp.second}';
+
     print("Setting up camera fallback for testing at $formattedTime");
-    
+
     // Display a message to the user about test mode
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _showTestModeNotification();
       }
     });
-    
+
     // We can still simulate the API for testing
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
@@ -432,7 +593,7 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       }
     });
   }
-  
+
   void _showTestModeNotification() {
     // Show a notification that we're in test mode - useful for debugging in Chrome
     ScaffoldMessenger.of(context).showSnackBar(
@@ -446,9 +607,13 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Running in Test Mode', 
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                  const Text('Camera access not available - using simulated data'),
+                  const Text(
+                    'Running in Test Mode',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'Camera access not available - using simulated data',
+                  ),
                 ],
               ),
             ),
@@ -461,18 +626,20 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       ),
     );
   }
-    // Method to simulate API calls when camera isn't available (especially in Chrome)
+
+  // Method to simulate API calls when camera isn't available (especially in Chrome)
   Future<void> _sendToFlaskAPIWithTestData() async {
     try {
       final requestTime = DateTime.now();
-      final formattedTime = '${requestTime.hour}:${requestTime.minute}:${requestTime.second}';
-      
+      final formattedTime =
+          '${requestTime.hour}:${requestTime.minute}:${requestTime.second}';
+
       print("Using test mode for API communication at $formattedTime");
-      
+
       // Determine if we're running in a web browser
       bool isWebPlatform = false;
       String platformInfo = "mobile";
-      
+
       try {
         if (Platform.isAndroid) {
           platformInfo = "Android";
@@ -487,57 +654,85 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         platformInfo = "web browser";
         print("Web platform detected for testing");
       }
-      
+
       print("Test mode active on $platformInfo platform at $formattedTime");
-      
+
+      // Make sure video is playing before API simulation
+      if (_videoController != null &&
+          _videoController!.value.isInitialized &&
+          !_videoController!.value.isPlaying) {
+        print("Ensuring video is playing during test");
+        _videoController!.play(); // No await to prevent blocking
+      }
+
       // Generate a semi-realistic response with some randomness for testing
       final random = Random();
       // Add more randomness for web to match Chrome behavior
-      final focused = isWebPlatform ? 
-          (random.nextInt(10) > 2) : // 80% chance of being focused on web
-          random.nextBool() || random.nextBool(); // 75% chance on mobile
-      
+      final focused =
+          isWebPlatform
+              ? (random.nextInt(10) > 2)
+              : // 80% chance of being focused on web
+              random.nextBool() || random.nextBool(); // 75% chance on mobile
+
       // Simulate API response with platform-appropriate delay
       await Future.delayed(Duration(milliseconds: isWebPlatform ? 400 : 300));
-      
+
+      // Make sure video is still playing after delay
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
+
       setState(() {
         _isFocused = focused;
       });
-      
+
       if (!focused && mounted) {
         // Only play alert if not focused
         _playAttentionAlert();
       }
-      
+
+      // Final check to ensure video is still playing
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
     } catch (e, stack) {
       print("API error in test mode: $e");
       print("Stacktrace: $stack");
+
+      // Even on error, ensure video is playing
+      if (_videoController != null && !_videoController!.value.isPlaying) {
+        _videoController!.play();
+      }
     }
   }
 
-  @override
-  void dispose() {
-    _videoController?.dispose();
-    _cameraController?.dispose();
-    _captureTimer?.cancel();
-    _colorChangeTimer?.cancel();
-    _audioPlayer.dispose();
-    _pulseController.dispose();
-    _floatingController.dispose();
-    _fadeController.dispose();
-    _bounceController.dispose();
-    _rotateController.dispose();
-    _scaleController.dispose();
-    super.dispose();
+  // Helper method to ensure video is playing - can be called from anywhere
+  void _ensureVideoIsPlaying() {
+    if (_videoController != null && 
+        _videoController!.value.isInitialized && 
+        !_videoController!.value.isPlaying &&
+        !_videoController!.value.isCompleted) {
+      print("Manual check - ensuring video is playing");
+      _videoController!.play();
+      
+      // Schedule another check in the near future for robustness
+      if (mounted) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && _videoController != null && !_videoController!.value.isPlaying) {
+            _videoController!.play();
+          }
+        });
+      }
+    }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final isSmallScreen = screenWidth < 600;
     final isPad = screenWidth >= 600 && screenWidth < 1200;
-    
+
     return Scaffold(
       backgroundColor: _backgroundColorWarm,
       appBar: AppBar(
@@ -577,27 +772,27 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         ),
         centerTitle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
         ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             // Responsive layout adjustments
-            final contentPadding = isSmallScreen 
-                ? const EdgeInsets.all(12.0)
-                : (isPad 
-                    ? const EdgeInsets.all(24.0)
-                    : const EdgeInsets.all(32.0));
-            
-            final videoHeight = isSmallScreen
-                ? constraints.maxHeight * 0.6
-                : (isPad
-                    ? constraints.maxHeight * 0.7
-                    : constraints.maxHeight * 0.75);
-                    
+            final contentPadding =
+                isSmallScreen
+                    ? const EdgeInsets.all(12.0)
+                    : (isPad
+                        ? const EdgeInsets.all(24.0)
+                        : const EdgeInsets.all(32.0));
+
+            final videoHeight =
+                isSmallScreen
+                    ? constraints.maxHeight * 0.6
+                    : (isPad
+                        ? constraints.maxHeight * 0.7
+                        : constraints.maxHeight * 0.75);
+
             return Stack(
               children: [
                 // Background decoration with animated gradient
@@ -617,10 +812,10 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                     ),
                   ),
                 ),
-                
+
                 // Animated bubbles in background for visual stimulation
                 if (!isSmallScreen) ..._buildBackgroundBubbles(),
-                
+
                 // Main content
                 SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -631,7 +826,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                       child: Column(
                         children: [
                           // Video container with rounded corners and enhanced shadow
-                          if (_videoController != null && _videoController!.value.isInitialized)
+                          if (_videoController != null &&
+                              _videoController!.value.isInitialized)
                             Container(
                               height: videoHeight,
                               decoration: BoxDecoration(
@@ -649,23 +845,28 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                 borderRadius: BorderRadius.circular(30),
                                 child: Stack(
                                   alignment: Alignment.bottomCenter,
-                                  children: [
-                                    // Video player
-                                    VideoPlayer(_videoController!),
-                                    
+                                  children: [                                    // Video player with tap to play functionality
+                                    GestureDetector(
+                                      onTap: _ensureVideoIsPlaying, // Add tap handler to ensure video plays when tapped
+                                      child: VideoPlayer(_videoController!),
+                                    ),
+
                                     // Animated frame decoration
                                     IgnorePointer(
                                       child: Container(
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: _rainbowColors[_colorIndex].withOpacity(0.7),
+                                            color: _rainbowColors[_colorIndex]
+                                                .withOpacity(0.7),
                                             width: 8,
                                           ),
-                                          borderRadius: BorderRadius.circular(30),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    
+
                                     // Video progress indicator with rainbow effect
                                     Positioned(
                                       bottom: 0,
@@ -678,20 +879,24 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                             colors: _rainbowColors,
                                             stops: List.generate(
                                               _rainbowColors.length,
-                                              (index) => index / (_rainbowColors.length - 1),
+                                              (index) =>
+                                                  index /
+                                                  (_rainbowColors.length - 1),
                                             ),
                                           ),
                                         ),
-                                        width: constraints.maxWidth * _videoProgress,
+                                        width:
+                                            constraints.maxWidth *
+                                            _videoProgress,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                          
+
                           SizedBox(height: isSmallScreen ? 16 : 24),
-                          
+
                           // Focus celebration animation
                           if (_showFocusedCelebration)
                             SlideTransition(
@@ -737,29 +942,35 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                 ),
                               ),
                             ),
-                          
+
                           if (_showFocusedCelebration)
                             SizedBox(height: isSmallScreen ? 16 : 24),
-                          
+
                           // Attention status indicator with adaptive colors and animations
                           SlideTransition(
                             position: _floatingAnimation,
                             child: Container(
                               width: constraints.maxWidth,
                               padding: EdgeInsets.symmetric(
-                                vertical: isSmallScreen ? 12 : 16, 
-                                horizontal: isSmallScreen ? 16 : 24
+                                vertical: isSmallScreen ? 12 : 16,
+                                horizontal: isSmallScreen ? 16 : 24,
                               ),
                               decoration: BoxDecoration(
-                                color: _isFocused 
-                                  ? const Color(0xFF4CAF50).withOpacity(0.9)
-                                  : const Color(0xFFFF5252).withOpacity(0.9),
+                                color:
+                                    _isFocused
+                                        ? const Color(
+                                          0xFF4CAF50,
+                                        ).withOpacity(0.9)
+                                        : const Color(
+                                          0xFFFF5252,
+                                        ).withOpacity(0.9),
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: _isFocused
-                                      ? Colors.green.withOpacity(0.3)
-                                      : Colors.red.withOpacity(0.3),
+                                    color:
+                                        _isFocused
+                                            ? Colors.green.withOpacity(0.3)
+                                            : Colors.red.withOpacity(0.3),
                                     blurRadius: 10,
                                     offset: const Offset(0, 3),
                                     spreadRadius: 1,
@@ -770,27 +981,31 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                 children: [
                                   ScaleTransition(
                                     scale: _pulseAnimation,
-                                    child: _isFocused
-                                      ? Lottie.asset(
-                                          'assets/animations/focused.json',
-                                          height: isSmallScreen ? 50 : 60,
-                                          width: isSmallScreen ? 50 : 60,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Lottie.asset(
-                                          'assets/animations/attention.json',
-                                          height: isSmallScreen ? 50 : 60,
-                                          width: isSmallScreen ? 50 : 60,
-                                          fit: BoxFit.cover,
-                                        ),
+                                    child:
+                                        _isFocused
+                                            ? Lottie.asset(
+                                              'assets/animations/focused.json',
+                                              height: isSmallScreen ? 50 : 60,
+                                              width: isSmallScreen ? 50 : 60,
+                                              fit: BoxFit.cover,
+                                            )
+                                            : Lottie.asset(
+                                              'assets/animations/attention.json',
+                                              height: isSmallScreen ? 50 : 60,
+                                              width: isSmallScreen ? 50 : 60,
+                                              fit: BoxFit.cover,
+                                            ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          _isFocused ? 'Great Watching!' : 'Look Here!',
+                                          _isFocused
+                                              ? 'Great Watching!'
+                                              : 'Look Here!',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -800,9 +1015,9 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          _isFocused 
-                                            ? 'You\'re doing awesome watching the video!' 
-                                            : 'Can you look at the friendly video?',
+                                          _isFocused
+                                              ? 'You\'re doing awesome watching the video!'
+                                              : 'Can you look at the friendly video?',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: isSmallScreen ? 14 : 16,
@@ -815,18 +1030,20 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                               ),
                             ),
                           ),
-                          
+
                           SizedBox(height: isSmallScreen ? 16 : 24),
-                          
+
                           // Camera status with animation
-                          if (_cameraController != null && _cameraController!.value.isInitialized)
+                          if (_cameraController != null &&
+                              _cameraController!.value.isInitialized)
                             Container(
                               padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: _rainbowColors[_colorIndex].withOpacity(0.5),
+                                  color: _rainbowColors[_colorIndex]
+                                      .withOpacity(0.5),
                                   width: 3,
                                 ),
                                 boxShadow: [
@@ -864,7 +1081,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Magic Eyes',
@@ -889,7 +1107,7 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                 ],
                               ),
                             ),
-                          
+
                           // Bottom space for scrolling
                           SizedBox(height: isSmallScreen ? 16 : 24),
                         ],
@@ -897,61 +1115,63 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                     ),
                   ),
                 ),
-                
+
                 // Focus alert overlay with animation
                 AnimatedBuilder(
                   animation: _fadeAnimation,
                   builder: (context, child) {
-                    return !_isFocused ? Positioned.fill(
-                      child: IgnorePointer(
-                        ignoring: _fadeAnimation.value < 0.1,
-                        child: Opacity(
-                          opacity: _fadeAnimation.value * 0.7,
-                          child: Container(
-                            color: Colors.red.withOpacity(0.3),
-                            child: Center(
+                    return !_isFocused
+                        ? Positioned.fill(
+                          child: IgnorePointer(
+                            ignoring: _fadeAnimation.value < 0.1,
+                            child: Opacity(
+                              opacity: _fadeAnimation.value * 0.7,
                               child: Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.red.withOpacity(0.5),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
+                                color: Colors.red.withOpacity(0.3),
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.red.withOpacity(0.5),
+                                          blurRadius: 20,
+                                          spreadRadius: 5,
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ScaleTransition(
-                                      scale: _pulseAnimation,
-                                      child: Icon(
-                                        Icons.visibility,
-                                        color: Colors.red,
-                                        size: isSmallScreen ? 60 : 80,
-                                      ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ScaleTransition(
+                                          scale: _pulseAnimation,
+                                          child: Icon(
+                                            Icons.visibility,
+                                            color: Colors.red,
+                                            size: isSmallScreen ? 60 : 80,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Please Look!',
+                                          style: TextStyle(
+                                            fontSize: isSmallScreen ? 24 : 32,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.red,
+                                            fontFamily: 'Comic Sans MS',
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Please Look!',
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 24 : 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
-                                        fontFamily: 'Comic Sans MS',
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ) : const SizedBox.shrink();
+                        )
+                        : const SizedBox.shrink();
                   },
                 ),
               ],
@@ -961,15 +1181,18 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       ),
     );
   }
-    // Helper method to create animated background bubbles
+
+  // Helper method to create animated background bubbles
   List<Widget> _buildBackgroundBubbles() {
     final random = Random();
     return List.generate(12, (index) {
       final size = 20.0 + random.nextDouble() * 60;
-      final left = random.nextDouble() * (MediaQuery.of(context).size.width - size);
-      final top = random.nextDouble() * (MediaQuery.of(context).size.height - size);
+      final left =
+          random.nextDouble() * (MediaQuery.of(context).size.width - size);
+      final top =
+          random.nextDouble() * (MediaQuery.of(context).size.height - size);
       final color = _rainbowColors[random.nextInt(_rainbowColors.length)];
-      
+
       return Positioned(
         left: left,
         top: top,
@@ -977,7 +1200,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
           child: AnimatedBuilder(
             animation: _floatingController,
             builder: (context, child) {
-              final offset = sin(_floatingController.value * 2 * pi + index) * 10;
+              final offset =
+                  sin(_floatingController.value * 2 * pi + index) * 10;
               return Transform.translate(
                 offset: Offset(0, offset),
                 child: Opacity(
