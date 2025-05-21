@@ -532,7 +532,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
   }
   
   @override
-  Widget build(BuildContext context) {    final mediaQuery = MediaQuery.of(context);
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final isSmallScreen = screenWidth < 600;
     final isPad = screenWidth >= 600 && screenWidth < 1200;
@@ -592,10 +593,10 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                     : const EdgeInsets.all(32.0));
             
             final videoHeight = isSmallScreen
-                ? constraints.maxHeight * 0.4
+                ? constraints.maxHeight * 0.6
                 : (isPad
-                    ? constraints.maxHeight * 0.5
-                    : constraints.maxHeight * 0.6);
+                    ? constraints.maxHeight * 0.7
+                    : constraints.maxHeight * 0.75);
                     
             return Stack(
               children: [
@@ -684,45 +685,6 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                         width: constraints.maxWidth * _videoProgress,
                                       ),
                                     ),
-                                    
-                                    // Video controls with improved accessibility
-                                    Positioned.fill(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          splashColor: AppColors.Attention.withOpacity(0.3),
-                                          highlightColor: Colors.transparent,
-                                          onTap: () {
-                                            if (_isVideoPlaying) {
-                                              _videoController!.pause();
-                                            } else {
-                                              _videoController!.play();
-                                            }
-                                          },
-                                          child: Center(
-                                            child: AnimatedOpacity(
-                                              opacity: _isVideoPlaying ? 0.0 : 1.0,
-                                              duration: const Duration(milliseconds: 300),
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black38,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                padding: const EdgeInsets.all(24),
-                                                child: ScaleTransition(
-                                                  scale: _pulseAnimation,
-                                                  child: Icon(
-                                                    _isVideoPlaying ? Icons.pause : Icons.play_arrow,
-                                                    color: Colors.white,
-                                                    size: isSmallScreen ? 36 : 48,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -754,7 +716,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                                       'assets/images/eappface.png',
                                       height: 60,
                                     ),
-                                    const SizedBox(width: 12),                                    Text(
+                                    const SizedBox(width: 12),
+                                    Text(
                                       'Amazing Focus!',
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 20 : 24,
@@ -806,7 +769,8 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                               child: Row(
                                 children: [
                                   ScaleTransition(
-                                    scale: _pulseAnimation,                                    child: _isFocused
+                                    scale: _pulseAnimation,
+                                    child: _isFocused
                                       ? Lottie.asset(
                                           'assets/animations/focused.json',
                                           height: isSmallScreen ? 50 : 60,
@@ -926,72 +890,6 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
                               ),
                             ),
                           
-                          SizedBox(height: isSmallScreen ? 12 : 20),
-                          
-                          // Video controls with enhanced tactile experience
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: isSmallScreen ? 10 : 16, 
-                              horizontal: isSmallScreen ? 12 : 20,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.Attention.withOpacity(0.2),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [                                _buildControlButton(
-                                  Icons.replay_10,
-                                  'Back 10s',
-                                  () {
-                                    if (_videoController != null) {
-                                      final currentPosition = _videoController!.value.position;
-                                      final newPosition = currentPosition - const Duration(seconds: 10);
-                                      _videoController!.seekTo(newPosition);
-                                    }
-                                  },
-                                  colors: [Colors.purple.shade300, Colors.purple.shade500],
-                                  size: isSmallScreen ? 50 : 60,
-                                ),
-                                _buildControlButton(
-                                  _isVideoPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                                  _isVideoPlaying ? 'Pause' : 'Play',
-                                  () {
-                                    if (_isVideoPlaying) {
-                                      _videoController?.pause();
-                                    } else {
-                                      _videoController?.play();
-                                    }
-                                  },
-                                  isHighlighted: true,
-                                  colors: [AppColors.Attention, Colors.deepOrange],
-                                  size: isSmallScreen ? 70 : 80,
-                                ),
-                                _buildControlButton(
-                                  Icons.forward_10,
-                                  'Forward 10s',
-                                  () {
-                                    if (_videoController != null) {
-                                      final currentPosition = _videoController!.value.position;
-                                      final newPosition = currentPosition + const Duration(seconds: 10);
-                                      _videoController!.seekTo(newPosition);
-                                    }
-                                  },
-                                  colors: [Colors.teal.shade300, Colors.teal.shade500],
-                                  size: isSmallScreen ? 50 : 60,
-                                ),
-                              ],
-                            ),
-                          ),
-                          
                           // Bottom space for scrolling
                           SizedBox(height: isSmallScreen ? 16 : 24),
                         ],
@@ -1063,8 +961,7 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
       ),
     );
   }
-  
-  // Helper method to create animated background bubbles
+    // Helper method to create animated background bubbles
   List<Widget> _buildBackgroundBubbles() {
     final random = Random();
     return List.generate(12, (index) {
@@ -1100,60 +997,5 @@ class _AttentionScreenState extends State<AttentionScreen> with TickerProviderSt
         ),
       );
     });
-  }
-  
-  Widget _buildControlButton(
-    IconData icon, 
-    String label, 
-    VoidCallback onPressed, 
-    {bool isHighlighted = false, 
-    List<Color> colors = const [Colors.blue, Colors.indigo],
-    double size = 60}
-  ) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: colors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors[0].withOpacity(0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ScaleTransition(
-              scale: isHighlighted ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: size * 0.6,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: colors[1],
-              fontSize: 14,
-              fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
-              fontFamily: 'Comic Sans MS',
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
