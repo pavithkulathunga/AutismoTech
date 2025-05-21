@@ -1,4 +1,4 @@
-# **AutismoTech: Enhancing Autism Spectrum Disorder (ASD) Care**  
+# **Autismo-Tech: Enhancing Autism Spectrum Disorder (ASD) Care**  
 
 ---
 
@@ -12,7 +12,7 @@
 - **Samarasinghe S.S** - IT21347030  
 - **Costa D.A.S** - IT21787072  
 
-**GitHub Repository**: [AutismoTech](https://github.com/PavithNimantha/AutismoTech/)  
+**GitHub Repository**: [Autismo-Tech](https://github.com/PavithNimantha/Autismo-Tech/)  
 
 ---
 
