@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
@@ -28,6 +29,9 @@ class _AttentionScreenState extends State<AttentionScreen>
   Timer? _captureTimer;
   Timer? _videoPlaybackTimer; // New timer just for ensuring video playback
   bool _isCapturing = false;
+  bool _showControls = false; // New variable to track if video controls are visible
+  Timer? _controlsTimer; // Timer to auto-hide controls after a period of inactivity
+  bool _userPaused = false; // New flag to track if user manually paused the video
 
   // Animation controllers
   late AnimationController _pulseController;
@@ -258,18 +262,16 @@ class _AttentionScreenState extends State<AttentionScreen>
       _setupCameraFallbackForTesting();
     }
   }
-
   Future<void> _initializeVideoPlayer() async {
     _videoController = VideoPlayerController.asset(widget.videoPath);
-    await _videoController!.initialize();
-
-    // Set up video progress tracking with enhanced continuous playback
+    await _videoController!.initialize();    // Set up video progress tracking with enhanced continuous playback
     _videoController!.addListener(() {
-      // CRITICAL: Force continuous playback - highest priority
-      // This prevents any pausing of the video
-      if (!_videoController!.value.isPlaying &&
+      // Only force continuous playback if controls aren't showing and user hasn't manually paused
+      if (!_showControls &&
+          !_videoController!.value.isPlaying &&
           _videoController!.value.isInitialized &&
-          !_videoController!.value.isCompleted) {
+          !_videoController!.value.isCompleted &&
+          !_userPaused) {
         _videoController!.play();
         print("Forcing video to continue playing");
       }
@@ -316,13 +318,15 @@ class _AttentionScreenState extends State<AttentionScreen>
     _videoController!.setVolume(1.0);
 
     // Start playing and ensure it continues
-    await _videoController!.play();    // Setup a dedicated timer to ensure video keeps playing
-    // This will run more frequently than the capture timer
-    _videoPlaybackTimer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
+    await _videoController!.play();
+      // Setup a dedicated timer to ensure video keeps playing, but only when controls aren't showing
+    _videoPlaybackTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (_videoController != null && 
           _videoController!.value.isInitialized && 
           !_videoController!.value.isPlaying && 
-          !_videoController!.value.isCompleted) {
+          !_videoController!.value.isCompleted &&
+          !_showControls &&
+          !_userPaused) {  // Don't force playback if user manually paused
         print("Continuous video check: Video not playing, restarting");
         _videoController!.play();
       }
@@ -336,14 +340,14 @@ class _AttentionScreenState extends State<AttentionScreen>
     
     // Extra check to make sure video starts playing
     Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) {
+      if (mounted && !_showControls) {
         _ensureVideoIsPlaying();
       }
     });
     
     // Additional regular checks to ensure video keeps playing
     Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
+      if (mounted && !_showControls) {
         _ensureVideoIsPlaying();
       }
     });
@@ -355,19 +359,16 @@ class _AttentionScreenState extends State<AttentionScreen>
       if (_isCapturing) {
         print("Skipping capture: already capturing");
         return;
-      }
-
-      // Force continuous video playback (highest priority)
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      }      // Force continuous video playback (highest priority)
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         print("Video not playing, restarting playback");
         _videoController!.play(); // No await to prevent blocking
       }
 
       _isCapturing = true;
 
-      try {
-        // Another check to ensure video stays playing before camera capture
-        if (_videoController != null && !_videoController!.value.isPlaying) {
+      try {        // Another check to ensure video stays playing before camera capture
+        if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
           _videoController!.play();
         }
 
@@ -375,10 +376,8 @@ class _AttentionScreenState extends State<AttentionScreen>
             _cameraController!.value.isInitialized) {
           // Camera is available, use real image capture
           final file = await _cameraController!.takePicture();
-          final bytes = await File(file.path).readAsBytes();
-
-          // Check again after picture capture
-          if (_videoController != null && !_videoController!.value.isPlaying) {
+          final bytes = await File(file.path).readAsBytes();          // Check again after picture capture
+          if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
             _videoController!.play();
           }
 
@@ -392,16 +391,13 @@ class _AttentionScreenState extends State<AttentionScreen>
         // If camera capture fails, switch to test mode
         await _sendToFlaskAPIWithTestData();
       } finally {
-        _isCapturing = false;
-
-        // Final check to ensure video is still playing after all processing
-        if (_videoController != null && !_videoController!.value.isPlaying) {
+        _isCapturing = false;        // Final check to ensure video is still playing after all processing
+        if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
           _videoController!.play();
         }
       }
     });
   }
-
   @override
   void dispose() {
     // Unregister from lifecycle events
@@ -411,6 +407,7 @@ class _AttentionScreenState extends State<AttentionScreen>
     _cameraController?.dispose();
     _captureTimer?.cancel();
     _videoPlaybackTimer?.cancel(); // Cancel the video playback timer
+    _controlsTimer?.cancel(); // Cancel the controls auto-hide timer
     _colorChangeTimer?.cancel();
     _audioPlayer.dispose();
     _pulseController.dispose();
@@ -425,22 +422,20 @@ class _AttentionScreenState extends State<AttentionScreen>
   // No changes needed to the didChangeAppLifecycleState method
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    // Resume video playback when app comes back to foreground
+    super.didChangeAppLifecycleState(state);    // Resume video playback when app comes back to foreground
     if (state == AppLifecycleState.resumed) {
       if (_videoController != null &&
           _videoController!.value.isInitialized &&
-          !_videoController!.value.isPlaying) {
+          !_videoController!.value.isPlaying &&
+          !_userPaused) {
         print("App resumed - ensuring video is playing");
         _videoController!.play();
       }
     }
   }
 
-  Future<void> _sendToFlaskAPI(Uint8List imageBytes) async {
-    // First ensure video keeps playing before API call
-    if (_videoController != null && !_videoController!.value.isPlaying) {
+  Future<void> _sendToFlaskAPI(Uint8List imageBytes) async {    // First ensure video keeps playing before API call
+    if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
       _videoController!.play();
     }
 
@@ -460,10 +455,8 @@ class _AttentionScreenState extends State<AttentionScreen>
       print("Response body: $resBody");
       final json = jsonDecode(resBody);
 
-      final isFocused = json['focused'] == true;
-
-      // Ensure video is still playing after API response
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      final isFocused = json['focused'] == true;      // Ensure video is still playing after API response
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
 
@@ -489,11 +482,10 @@ class _AttentionScreenState extends State<AttentionScreen>
               if (mounted) {
                 setState(() {
                   _showFocusedCelebration = false;
-                });
-
-                // Ensure video is still playing after celebration
+                });                // Ensure video is still playing after celebration
                 if (_videoController != null &&
-                    !_videoController!.value.isPlaying) {
+                    !_videoController!.value.isPlaying &&
+                    !_userPaused) {
                   _videoController!.play();
                 }
               }
@@ -522,18 +514,16 @@ class _AttentionScreenState extends State<AttentionScreen>
 
       if (!isFocused) {
         await _playAttentionAlert();
-      }
-
-      // Final check to ensure video is playing after all processing
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      }      // Final check to ensure video is playing after all processing
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
     } catch (e, stack) {
       print("API error: $e");
       print("Stacktrace: $stack");
 
-      // Even on error, ensure video is playing
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      // Even on error, ensure video is playing if not user-paused
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
     }
@@ -546,10 +536,8 @@ class _AttentionScreenState extends State<AttentionScreen>
         AssetSource('audio/pay_attention.mp3'),
         mode: PlayerMode.lowLatency,
         volume: 1.0,
-      );
-
-      // Ensure video keeps playing
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      );      // Ensure video keeps playing
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
 
@@ -655,12 +643,11 @@ class _AttentionScreenState extends State<AttentionScreen>
         print("Web platform detected for testing");
       }
 
-      print("Test mode active on $platformInfo platform at $formattedTime");
-
-      // Make sure video is playing before API simulation
+      print("Test mode active on $platformInfo platform at $formattedTime");      // Make sure video is playing before API simulation
       if (_videoController != null &&
           _videoController!.value.isInitialized &&
-          !_videoController!.value.isPlaying) {
+          !_videoController!.value.isPlaying &&
+          !_userPaused) {
         print("Ensuring video is playing during test");
         _videoController!.play(); // No await to prevent blocking
       }
@@ -675,10 +662,8 @@ class _AttentionScreenState extends State<AttentionScreen>
               random.nextBool() || random.nextBool(); // 75% chance on mobile
 
       // Simulate API response with platform-appropriate delay
-      await Future.delayed(Duration(milliseconds: isWebPlatform ? 400 : 300));
-
-      // Make sure video is still playing after delay
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      await Future.delayed(Duration(milliseconds: isWebPlatform ? 400 : 300));      // Make sure video is still playing after delay
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
 
@@ -689,41 +674,162 @@ class _AttentionScreenState extends State<AttentionScreen>
       if (!focused && mounted) {
         // Only play alert if not focused
         _playAttentionAlert();
-      }
-
-      // Final check to ensure video is still playing
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      }      // Final check to ensure video is still playing
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
     } catch (e, stack) {
       print("API error in test mode: $e");
       print("Stacktrace: $stack");
 
-      // Even on error, ensure video is playing
-      if (_videoController != null && !_videoController!.value.isPlaying) {
+      // Even on error, ensure video is playing if not user-paused
+      if (_videoController != null && !_videoController!.value.isPlaying && !_userPaused) {
         _videoController!.play();
       }
     }
-  }
-
-  // Helper method to ensure video is playing - can be called from anywhere
+  }  // Helper method to ensure video is playing - can be called from anywhere
   void _ensureVideoIsPlaying() {
     if (_videoController != null && 
         _videoController!.value.isInitialized && 
         !_videoController!.value.isPlaying &&
-        !_videoController!.value.isCompleted) {
+        !_videoController!.value.isCompleted &&
+        !_showControls &&
+        !_userPaused) {  // Only force play if controls aren't showing and user didn't pause
       print("Manual check - ensuring video is playing");
       _videoController!.play();
       
       // Schedule another check in the near future for robustness
       if (mounted) {
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && _videoController != null && !_videoController!.value.isPlaying) {
+          if (mounted && _videoController != null && !_videoController!.value.isPlaying && !_showControls && !_userPaused) {
             _videoController!.play();
           }
         });
       }
     }
+  }
+
+  // Reset the controls auto-hide timer
+  void _resetControlsTimer() {
+    _controlsTimer?.cancel();
+    _controlsTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
+  }
+
+  // Helper method to build a control button with animations
+  Widget _buildControlButton(
+    IconData icon,
+    Color color,
+    VoidCallback onPressed, {
+    double size = 50,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.6),
+              blurRadius: 15,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: ScaleTransition(
+          scale: _pulseAnimation,
+          child: Icon(
+            icon,
+            size: size * 0.7,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Custom video progress bar with interactive seeking
+  Widget _buildCustomProgressBar() {
+    final duration = _videoController!.value.duration;
+    final position = _videoController!.value.position;
+    
+    // Format the position and duration
+    final positionText = _formatDuration(position);
+    final durationText = _formatDuration(duration);
+    
+    return Column(
+      children: [
+        // Time indicators
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                positionText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                durationText,
+                style: const TextStyle(
+                  color: Colors.white, 
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Slider for seeking
+        SliderTheme(
+          data: SliderThemeData(
+            thumbShape: RoundSliderThumbShape(
+              enabledThumbRadius: 10,
+              elevation: 4,
+            ),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 24),
+            trackHeight: 8,
+            activeTrackColor: _rainbowColors[_colorIndex],
+            inactiveTrackColor: Colors.white.withOpacity(0.3),
+            thumbColor: _rainbowColors[_colorIndex],
+            overlayColor: _rainbowColors[_colorIndex].withOpacity(0.3),
+          ),
+          child: Slider(
+            value: position.inMilliseconds.toDouble().clamp(
+              0.0,
+              duration.inMilliseconds.toDouble(),
+            ),
+            min: 0.0,
+            max: duration.inMilliseconds.toDouble(),
+            onChanged: (value) {
+              final newPosition = Duration(milliseconds: value.toInt());
+              _videoController!.seekTo(newPosition);
+              _resetControlsTimer();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Format duration to mm:ss
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   @override
@@ -845,10 +951,155 @@ class _AttentionScreenState extends State<AttentionScreen>
                                 borderRadius: BorderRadius.circular(30),
                                 child: Stack(
                                   alignment: Alignment.bottomCenter,
-                                  children: [                                    // Video player with tap to play functionality
-                                    GestureDetector(
-                                      onTap: _ensureVideoIsPlaying, // Add tap handler to ensure video plays when tapped
+                                  children: [                                    // Video player with tap to toggle controls
+                                    GestureDetector(                                      onTap: () {
+                                        setState(() {
+                                          _showControls = !_showControls;
+                                          
+                                          // Cancel previous timer if exists
+                                          _controlsTimer?.cancel();
+                                          
+                                          // Auto-hide controls after 5 seconds of inactivity
+                                          if (_showControls) {
+                                            _controlsTimer = Timer(const Duration(seconds: 5), () {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _showControls = false;
+                                                });
+                                              }
+                                            });
+                                          }
+                                        });
+                                        
+                                        // Also ensure video plays when tapped, unless user manually paused
+                                        if (!_userPaused) {
+                                          _ensureVideoIsPlaying();
+                                        }
+                                      },
                                       child: VideoPlayer(_videoController!),
+                                    ),                                    // Video controls overlay with animations
+                                    AnimatedOpacity(
+                                      opacity: _showControls ? 1.0 : 0.0,
+                                      duration: const Duration(milliseconds: 300),
+                                      child: _showControls 
+                                        ? Container(
+                                            color: Colors.black.withOpacity(0.4),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  // Main control buttons row
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      // Backward 10 seconds
+                                                      TweenAnimationBuilder<double>(
+                                                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                                                        duration: const Duration(milliseconds: 500),
+                                                        curve: Curves.elasticOut,
+                                                        builder: (context, value, child) {
+                                                          return Transform.scale(
+                                                            scale: value,
+                                                            child: _buildControlButton(
+                                                              Icons.replay_10_rounded,
+                                                              Colors.white,
+                                                              () {
+                                                                final currentPosition = _videoController!.value.position;
+                                                                final newPosition = currentPosition - const Duration(seconds: 10);
+                                                                _videoController!.seekTo(newPosition.isNegative ? Duration.zero : newPosition);
+                                                                _resetControlsTimer();
+                                                              },
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                      
+                                                      const SizedBox(width: 24),
+                                                      
+                                                      // Play/Pause button (larger)
+                                                      TweenAnimationBuilder<double>(
+                                                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                                                        duration: const Duration(milliseconds: 700),
+                                                        curve: Curves.elasticOut,
+                                                        builder: (context, value, child) {
+                                                          return Transform.scale(
+                                                            scale: value,
+                                                            child: _buildControlButton(
+                                                              _videoController!.value.isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                                                              _rainbowColors[_colorIndex],                                                              () {
+                                                                if (_videoController!.value.isPlaying) {
+                                                                  _videoController!.pause();
+                                                                  setState(() {
+                                                                    _userPaused = true; // Track that user manually paused
+                                                                  });
+                                                                } else {
+                                                                  _videoController!.play();
+                                                                  setState(() {
+                                                                    _userPaused = false; // Clear the flag when user manually plays
+                                                                  });
+                                                                }
+                                                                _resetControlsTimer();
+                                                              },
+                                                              size: 80,
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                      
+                                                      const SizedBox(width: 24),
+                                                      
+                                                      // Forward 10 seconds
+                                                      TweenAnimationBuilder<double>(
+                                                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                                                        duration: const Duration(milliseconds: 500),
+                                                        curve: Curves.elasticOut,
+                                                        builder: (context, value, child) {
+                                                          return Transform.scale(
+                                                            scale: value,
+                                                            child: _buildControlButton(
+                                                              Icons.forward_10_rounded,
+                                                              Colors.white,
+                                                              () {
+                                                                final currentPosition = _videoController!.value.position;
+                                                                final newPosition = currentPosition + const Duration(seconds: 10);
+                                                                if (newPosition < _videoController!.value.duration) {
+                                                                  _videoController!.seekTo(newPosition);
+                                                                }
+                                                                _resetControlsTimer();
+                                                              },
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  
+                                                  const SizedBox(height: 32),
+                                                  
+                                                  // Custom video progress bar with slide-up animation
+                                                  TweenAnimationBuilder<double>(
+                                                    tween: Tween<double>(begin: 40.0, end: 0.0),
+                                                    duration: const Duration(milliseconds: 400),
+                                                    curve: Curves.easeOutCubic,
+                                                    builder: (context, value, child) {
+                                                      return Transform.translate(
+                                                        offset: Offset(0, value),
+                                                        child: Opacity(
+                                                          opacity: 1 - (value / 40.0).clamp(0.0, 1.0),
+                                                          child: Padding(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                                                            child: _buildCustomProgressBar(),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        : null,
                                     ),
 
                                     // Animated frame decoration
@@ -865,31 +1116,31 @@ class _AttentionScreenState extends State<AttentionScreen>
                                           ),
                                         ),
                                       ),
-                                    ),
-
-                                    // Video progress indicator with rainbow effect
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        height: 10,
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: _rainbowColors,
-                                            stops: List.generate(
-                                              _rainbowColors.length,
-                                              (index) =>
-                                                  index /
-                                                  (_rainbowColors.length - 1),
+                                    ),                                    // Video progress indicator with rainbow effect
+                                    // Only show the simple progress bar when controls are not visible
+                                    if (!_showControls)
+                                      Positioned(
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: _rainbowColors,
+                                              stops: List.generate(
+                                                _rainbowColors.length,
+                                                (index) =>
+                                                    index /
+                                                    (_rainbowColors.length - 1),
+                                              ),
                                             ),
                                           ),
+                                          width:
+                                              constraints.maxWidth *
+                                              _videoProgress,
                                         ),
-                                        width:
-                                            constraints.maxWidth *
-                                            _videoProgress,
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
