@@ -144,7 +144,7 @@ class _AttentionScreenState extends State<AttentionScreen> {
   }
 
   Future<void> _sendToFlaskAPI(Uint8List imageBytes) async {
-    final uri = Uri.parse('http://localhost:8080/attention/track_focus ');
+    final uri = Uri.parse('http://192.168.1.5:5000/attention/track_focus');
     final request = http.MultipartRequest('POST', uri)
       ..files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: 'image.jpg'));
 
