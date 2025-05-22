@@ -384,7 +384,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
     
     setState(() => _isLoading = true);
 
-    final String apiUrl = 'localhost:8080';
+    final String apiUrl = '192.168.1.5:5000';
 
     final uri = Uri.parse(
       'http://$apiUrl/asd_diagnose/predict',
