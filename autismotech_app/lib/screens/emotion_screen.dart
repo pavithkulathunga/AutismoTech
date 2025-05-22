@@ -689,7 +689,16 @@ class _EmotionScreenState extends State<EmotionScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the image position to center it horizontally
     imageLeftPosition = (MediaQuery.of(context).size.width - 400) / 2 - 20;
+    // Calculate appropriate image sizes based on screen dimensions
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Change this line to increase the image size
+    final imageHeight =
+        screenHeight * 1.25; // Increased from 0.7 to 0.85 - makes image bigger
+    final imageWidth = imageHeight * (510 / 1230); // Maintain aspect ratio
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(76, 175, 80, 1),
@@ -710,104 +719,102 @@ class _EmotionScreenState extends State<EmotionScreen>
             duration: const Duration(milliseconds: 300),
             child: Stack(
               children: [
+                // Full screen bottom-aligned background image with 30px offset
                 Positioned(
-                  top: 1,
-                  left: imageLeftPosition,
+                  bottom:
+                      -60, // Increased to move image further down to the bottom
+                  left: 0,
+                  right: 0,
                   child: SizedBox(
-                    width: 510,
-                    height: 1230,
-                    child: Image.asset('assets/images/eappface.png'),
+                    width: imageWidth,
+                    height: imageHeight,
+                    child: Image.asset(
+                      'assets/images/eappface.png',
+                      fit: BoxFit.contain,
+                      alignment:
+                          Alignment
+                              .bottomCenter, // Ensure image aligns to bottom
+                    ),
                   ),
                 ),
+
+                // Content Container - Adjusted padding and layout
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(30.0, 10.0, 16.0, 260.0),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.green[900],
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 24.0,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            elevation: 6,
+                  padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Kid-friendly title moved up slightly
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5, bottom: 15),
+                        child: Text(
+                          "Let's Have Fun!",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.2),
+                                offset: const Offset(1, 1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
-                          icon: const Icon(Icons.videogame_asset),
-                          label: const Text(
-                            'Play Games',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/games');
-                          },
                         ),
-                        const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.green[900],
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 24.0,
+                      ),
+
+                      // Activity buttons moved up
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.35,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            // Play Games Button - Smaller and more professional
+                            _buildKidFriendlyButton(
+                              icon: Icons.videogame_asset,
+                              label: 'Play Games',
+                              color: const Color(
+                                0xFF3F51B5,
+                              ), // Professional indigo
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/games');
+                              },
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
+
+                            const SizedBox(
+                              height: 20,
+                            ), // Reduced space between buttons
+                            // Music Therapy Button - Smaller and more professional
+                            _buildKidFriendlyButton(
+                              icon: Icons.music_note,
+                              label: 'Music Therapy',
+                              color: const Color(
+                                0xFF00796B,
+                              ), // Professional teal
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/music');
+                              },
                             ),
-                            elevation: 6,
-                          ),
-                          icon: const Icon(Icons.music_note),
-                          label: const Text(
-                            'Music Therapy',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/music');
-                          },
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.green[900],
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 24.0,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            elevation: 6,
-                          ),
-                          icon: const Icon(Icons.assessment),
-                          label: const Text(
-                            'Professional Reports',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => _buildAuthenticationDialog(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+
+                      const Spacer(),
+
+                      // Professional access section - Kept at the bottom
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: _buildProfessionalAccessButton(),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-          // Professional section
+          // Professional section overlay
           AnimatedOpacity(
             opacity: _showProfessionalSection ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
@@ -817,6 +824,142 @@ class _EmotionScreenState extends State<EmotionScreen>
                     : const SizedBox(),
           ),
         ],
+      ),
+    );
+  }
+
+  // Updated method for smaller, more professional buttons
+  Widget _buildKidFriendlyButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 85, // Reduced height
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color, color.withOpacity(0.85)],
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          splashColor: Colors.white.withOpacity(0.1),
+          highlightColor: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                // Icon with refined styling
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 28, // Smaller icon
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Button text with more professional styling
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 20, // Smaller text
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        label == 'Play Games'
+                            ? 'Learn emotions through fun activities'
+                            : 'Relax with calming sounds',
+                        style: TextStyle(
+                          fontSize: 11, // Smaller subtitle
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // New method to build professional access button
+  Widget _buildProfessionalAccessButton() {
+    return Opacity(
+      opacity: 0.9,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade800.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => _buildAuthenticationDialog(),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.admin_panel_settings,
+                    color: Colors.white.withOpacity(0.9),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'For Professionals',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -930,105 +1073,612 @@ class _EmotionScreenState extends State<EmotionScreen>
   Widget _buildReportsTab() {
     return Column(
       children: [
-        // Search and filter section
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
+        // Professional Search and Filter UI
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                offset: const Offset(0, 2),
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search reports',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+              // Summary stats
+              Row(
+                children: [
+                  Text(
+                    'Clinical Reports',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey.shade800,
                     ),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.analytics,
+                          size: 14,
+                          color: Colors.green.shade700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_sessionReports.length} Reports',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Enhanced search with filters
+              Row(
+                children: [
+                  // Search field with refined styling
+                  Expanded(
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.08),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search reports by game or ID...',
+                          hintStyle: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.grey.shade500,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Filter button with modern styling
+                  Container(
+                    height: 48,
+                    width: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          // Show filter options
+                          _showFilterOptions();
+                        },
+                        child: Center(
+                          child: Icon(
+                            Icons.tune,
+                            color: Colors.blueGrey.shade700,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Filter chips (optional - shown when filters are active)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip(
+                        label: 'Last 7 Days',
+                        isSelected: true,
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFilterChip(
+                        label: 'High Scores',
+                        isSelected: false,
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 8),
+                      _buildFilterChip(
+                        label: 'Happy Hills',
+                        isSelected: false,
+                        onTap: () {},
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              IconButton(
-                onPressed: () {
-                  // Show filter options
-                },
-                icon: const Icon(Icons.filter_list),
-                tooltip: 'Filter reports',
               ),
             ],
           ),
         ),
 
-        // Reports list
+        // Reports list with enhanced professional styling
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            itemCount: _sessionReports.length,
-            itemBuilder: (context, index) {
-              final report = _sessionReports[index];
-              final dateFormatted = DateFormat(
-                'MMM d, y',
-              ).format(report['date']);
+          child:
+              _sessionReports.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                    padding: const EdgeInsets.only(top: 8),
+                    itemCount: _sessionReports.length,
+                    itemBuilder: (context, index) {
+                      final report = _sessionReports[index];
+                      final dateFormatted = DateFormat(
+                        'MMM d, y',
+                      ).format(report['date']);
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  onTap: () => _showReportDetails(report),
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.green.shade50,
-                    child: Icon(
-                      _getGameIcon(report['game']),
-                      color: Colors.green.shade700,
-                    ),
-                  ),
-                  title: Text(
-                    '${report['game']} - ${report['id']}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(dateFormatted),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          _buildReportChip(
-                            '${report['duration']} min',
-                            Icons.timer,
+                      // Determine status color based on score
+                      final score = report['score'] as int;
+                      final Color statusColor =
+                          score > 80
+                              ? Colors.green
+                              : (score > 60 ? Colors.orange : Colors.red);
+
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(color: Colors.grey.shade200),
                           ),
-                          const SizedBox(width: 8),
-                          _buildReportChip(
-                            'Score: ${report['score']}',
-                            Icons.star,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => _showReportDetails(report),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  // Report header with game and ID
+                                  Row(
+                                    children: [
+                                      // Game icon with styled container
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: _getGameColor(
+                                            report['game'],
+                                          ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          _getGameIcon(report['game']),
+                                          color: _getGameColor(report['game']),
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      // Game details
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              report['game'] as String,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'ID: ${report['id']}',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Score indicator
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.star,
+                                                size: 16,
+                                                color: statusColor,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${report['score']}/100',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: statusColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _getScoreLabel(score),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: statusColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 16),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 12),
+
+                                  // Report metrics in row
+                                  Row(
+                                    children: [
+                                      _buildMetricItem(
+                                        icon: Icons.date_range,
+                                        value: dateFormatted,
+                                        label: 'Session Date',
+                                      ),
+                                      _buildMetricItem(
+                                        icon: Icons.timer,
+                                        value: '${report['duration']} min',
+                                        label: 'Duration',
+                                      ),
+                                      _buildMetricItem(
+                                        icon: Icons.emoji_emotions,
+                                        value: _capitalizeFirst(
+                                          report['dominantEmotion'] as String,
+                                        ),
+                                        label: 'Primary Emotion',
+                                        color: _getEmotionColor(
+                                          report['dominantEmotion'] as String,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Action button
+                                  Row(
+                                    children: [
+                                      const Spacer(),
+                                      TextButton(
+                                        onPressed:
+                                            () => _showReportDetails(report),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'View Details',
+                                              style: TextStyle(
+                                                color: Colors.blueGrey.shade700,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.arrow_forward,
+                                              size: 16,
+                                              color: Colors.blueGrey.shade700,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          _buildReportChip(
-                            _capitalizeFirst(report['dominantEmotion']),
-                            Icons.emoji_emotions,
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      );
+                    },
                   ),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
-              );
-            },
-          ),
         ),
       ],
+    );
+  }
+
+  // Helper method to get score labels
+  String _getScoreLabel(int score) {
+    if (score >= 80) return 'Excellent';
+    if (score >= 70) return 'Good';
+    if (score >= 60) return 'Average';
+    return 'Needs Attention';
+  }
+
+  // Helper method for game colors
+  Color _getGameColor(String gameName) {
+    switch (gameName) {
+      case 'Happy Hills':
+        return Colors.amber.shade700;
+      case 'Angry Volcano':
+        return Colors.red.shade700;
+      case 'Calm Forest':
+        return Colors.teal.shade700;
+      default:
+        return Colors.blueGrey.shade700;
+    }
+  }
+
+  // New filter chip widget for professional UI
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blueGrey.shade700 : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.blueGrey.shade700 : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.close, size: 12, color: Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // New filter options dialog
+  void _showFilterOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Filter Reports',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Filter options would go here
+                Text(
+                  'Date Range',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Date range options
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _buildFilterChip(
+                      label: 'Today',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Last 7 Days',
+                      isSelected: true,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Last 30 Days',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Custom Range',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // More filter options
+                Text(
+                  'Activity Type',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _buildFilterChip(
+                      label: 'All Activities',
+                      isSelected: true,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Happy Hills',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Angry Volcano',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                    _buildFilterChip(
+                      label: 'Calm Forest',
+                      isSelected: false,
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: const Text('Reset Filters'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Apply Filters'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  // New empty state for professional look
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.analytics_outlined, size: 80, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          Text(
+            'No Reports Available',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Complete therapy sessions to generate reports',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method for metric items in report list
+  Widget _buildMetricItem({
+    required IconData icon,
+    required String value,
+    required String label,
+    Color? color,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, size: 16, color: color ?? Colors.grey.shade600),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: color ?? Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
     );
   }
 
