@@ -635,18 +635,25 @@ class ReportGenerationHelper {
     );
     
     // Add details page with questionnaire responses
+    // This needs to be modified to ensure all questions are displayed
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         theme: myTheme,
         pageFormat: PdfPageFormat.a4,
+        maxPages: 2, // Allow up to 2 pages for questions if needed
         build: (pw.Context context) {
           final List<pw.Widget> questionRows = [];
+          
+          // Debug info to help troubleshoot
+          print('Total questions to include in PDF: ${questions.length}');
           
           for (int i = 0; i < questions.length; i++) {
             final Map<String, dynamic> q = questions[i];
             final String question = q['question'] as String;
             final String field = q['field'] as String;
             final int? answer = answers[field];
+            
+            print('Processing question ${i+1}: $question, field: $field, answer: $answer');
             
             String answerText = 'Not answered';
             bool isPositiveIndicator = false;
@@ -771,49 +778,40 @@ class ReportGenerationHelper {
             );
           }
           
-          return pw.Container(
-            color: PdfColors.white,
-            child: pw.Padding(
-              padding: const pw.EdgeInsets.all(20),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    decoration: pw.BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: pw.BorderRadius.circular(10),
-                    ),
-                    child: pw.Text(
-                      'Questionnaire Responses',
-                      style: pw.TextStyle(
-                        fontSize: 18,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.white,
-                      ),
-                    ),
-                  ),
-                  pw.SizedBox(height: 20),
-                  
-                  // Questions and answers
-                  ...questionRows,
-                  
-                  pw.SizedBox(height: 20),
-                  pw.Divider(color: PdfColor.fromHex('#DDDDDD')),
-                  pw.SizedBox(height: 10),
-                  pw.Text(
-                    'Note: This questionnaire is based on common behavioral indicators associated with ASD. The responses provide a screening tool only and should be discussed with healthcare professionals.',
-                    style: pw.TextStyle(
-                      fontSize: 9,
-                      fontStyle: pw.FontStyle.italic,
-                      color: PdfColor.fromHex('#777777'),
-                    ),
-                  ),
-                ],
+          return [
+            // Header
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              decoration: pw.BoxDecoration(
+                color: primaryColor,
+                borderRadius: pw.BorderRadius.circular(10),
+              ),
+              child: pw.Text(
+                'Questionnaire Responses',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
               ),
             ),
-          );
+            pw.SizedBox(height: 20),
+            
+            // Questions and answers - all will be included due to MultiPage
+            ...questionRows,
+            
+            pw.SizedBox(height: 20),
+            pw.Divider(color: PdfColor.fromHex('#DDDDDD')),
+            pw.SizedBox(height: 10),
+            pw.Text(
+              'Note: This questionnaire is based on common behavioral indicators associated with ASD. The responses provide a screening tool only and should be discussed with healthcare professionals.',
+              style: pw.TextStyle(
+                fontSize: 9,
+                fontStyle: pw.FontStyle.italic,
+                color: PdfColor.fromHex('#777777'),
+              ),
+            ),
+          ];
         },
       ),
     );
