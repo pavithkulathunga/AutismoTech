@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:autismotech_app/utils/pdf_generator.dart';
+import 'package:autismotech_app/utils/report_generator.dart';
+import 'package:autismotech_app/utils/dashed_border.dart';
 
 class DiagnosisScreen extends StatefulWidget {
   const DiagnosisScreen({super.key});
@@ -557,37 +560,79 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: 1.0 + (_pulseController.value * 0.05),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          Navigator.pop(context);
+                Row(
+                  children: [
+                    Expanded(
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: 1.0 + (_pulseController.value * 0.05),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                HapticFeedback.mediumImpact();
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF32B4FF),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                elevation: 5,
+                                shadowColor: Colors.black26,
+                              ),
+                              child: const Text(
+                                "CLOSE",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF32B4FF),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 5,
-                          shadowColor: Colors.black26,
-                        ),
-                        child: const Text(
-                          "CLOSE",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            letterSpacing: 1,
-                          ),
-                        ),
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: 1.0 + (_pulseController.value * 0.05),
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.download),
+                              label: const Text(
+                                "REPORT",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              onPressed: () async {
+                                HapticFeedback.mediumImpact();
+                                _generateAndShareReport(result);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF39D8C9),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                elevation: 5,
+                                shadowColor: Colors.black26,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -736,7 +781,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
         _buildEnhancedRadio(fieldName, 'Sometimes/Rarely/Never', 1, textColor),
       ];
     }
-
+    
     return radios;
   }
 
@@ -914,10 +959,10 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
                                 widthFactor: _progress,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    gradient: LinearGradient(
+                                    gradient: const LinearGradient(
                                       colors: [
-                                        const Color(0xFF39D8C9),
-                                        const Color(0xFF32B4FF),
+                                        Color(0xFF39D8C9),
+                                        Color(0xFF32B4FF),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
@@ -1108,12 +1153,12 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
                         duration: const Duration(milliseconds: 300),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
                               Colors.white,
-                              const Color(0xFFF9FBFF),
+                              Color(0xFFF9FBFF),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
@@ -1134,9 +1179,9 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.photo_camera,
-                                  color: const Color(0xFF0287c3),
+                                  color: Color(0xFF0287c3),
                                   size: 26,
                                 ),
                                 const SizedBox(width: 12),
@@ -1414,6 +1459,38 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
         ),
       ),
     );
+  }
+
+  // Helper method to generate and share PDF report
+  Future<void> _generateAndShareReport(String result) async {
+    try {
+      setState(() => _isLoading = true);
+      
+      // Use the report generation helper to show animated dialog
+      await ReportGenerationHelper.generateAndShareReport(
+        context: context,
+        result: result,
+        answers: answers,
+        questions: questions,
+        imagePath: _pickedImage?.path,
+        loadingController: _loadingController,
+      );
+      
+      setState(() => _isLoading = false);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating report: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 }
 

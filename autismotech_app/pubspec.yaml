@@ -45,6 +45,10 @@ dependencies:
   audioplayers_windows: ^3.1.0
   video_player: ^2.7.2
   lottie: ^3.0.0
+  pdf: ^3.10.1  # For generating PDF reports
+  path_provider: ^2.1.0  # For handling file paths
+  share_plus: ^7.0.2  # For sharing reports
+  intl: ^0.18.1  # For date formatting
 
 flutter_launcher_icons:
   android: true
