@@ -52,7 +52,6 @@ class _GamesScreenState extends State<GamesScreen>
           title: _buildAnimatedTitle(),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          actions: [_buildSettingsButton()],
         ),
         body: Stack(
           children: [
@@ -98,26 +97,6 @@ class _GamesScreenState extends State<GamesScreen>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSettingsButton() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.2),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.settings, color: Colors.white),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            _showSettingsModal(context);
-          },
-          tooltip: 'Settings',
-        ),
-      ),
     );
   }
 
@@ -599,54 +578,6 @@ class _GamesScreenState extends State<GamesScreen>
           ],
         ),
       ),
-    );
-  }
-
-  void _showSettingsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder:
-          (context) => BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.6,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Game Settings",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
-                        color: Colors.deepPurple,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // Settings options would go here
-                ],
-              ),
-            ),
-          ),
     );
   }
 }
