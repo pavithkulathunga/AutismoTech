@@ -11,11 +11,12 @@ class GamesScreen extends StatefulWidget {
   State<GamesScreen> createState() => _GamesScreenState();
 }
 
-class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStateMixin {
+class _GamesScreenState extends State<GamesScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _backgroundAnimationController;
   bool _isLoaded = false;
   final List<GlobalKey> _cardKeys = List.generate(4, (_) => GlobalKey());
-  
+
   @override
   void initState() {
     super.initState();
@@ -23,10 +24,10 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       duration: const Duration(seconds: 30),
       vsync: this,
     )..repeat();
-    
+
     // Add haptic feedback when screen loads
     HapticFeedback.mediumImpact();
-    
+
     // Delayed animation for card appearance
     Future.delayed(const Duration(milliseconds: 300), () {
       setState(() {
@@ -34,7 +35,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       });
     });
   }
-  
+
   @override
   void dispose() {
     _backgroundAnimationController.dispose();
@@ -51,18 +52,16 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
           title: _buildAnimatedTitle(),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          actions: [
-            _buildSettingsButton(),
-          ],
+          actions: [_buildSettingsButton()],
         ),
         body: Stack(
           children: [
             // Animated Background
             _buildAnimatedBackground(),
-            
+
             // Foreground particles
             _buildParticlesEffect(),
-            
+
             // Frosted Glass Effect for Content Area
             _buildFrostedGlassContent(context),
           ],
@@ -70,7 +69,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       ),
     );
   }
-  
+
   Widget _buildAnimatedTitle() {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -101,7 +100,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       },
     );
   }
-  
+
   Widget _buildSettingsButton() {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
@@ -121,7 +120,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       ),
     );
   }
-  
+
   Widget _buildAnimatedBackground() {
     return AnimatedBuilder(
       animation: _backgroundAnimationController,
@@ -132,37 +131,41 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: const [
-                Color(0xFF6A3DE8), 
+                Color(0xFF6A3DE8),
                 Color(0xFF7C4DFF),
                 Color(0xFF9D6FFF),
               ],
               stops: [
                 0.0,
-                0.5 + 0.1 * math.sin(_backgroundAnimationController.value * math.pi * 2),
+                0.5 +
+                    0.1 *
+                        math.sin(
+                          _backgroundAnimationController.value * math.pi * 2,
+                        ),
                 1.0,
               ],
-              transform: GradientRotation(_backgroundAnimationController.value * 0.2 * math.pi),
+              transform: GradientRotation(
+                _backgroundAnimationController.value * 0.2 * math.pi,
+              ),
             ),
           ),
         );
       },
     );
   }
-  
+
   Widget _buildParticlesEffect() {
     return AnimatedBuilder(
       animation: _backgroundAnimationController,
       builder: (context, child) {
         return CustomPaint(
-          painter: ParticlesPainter(
-            animation: _backgroundAnimationController,
-          ),
+          painter: ParticlesPainter(animation: _backgroundAnimationController),
           size: Size.infinite,
         );
       },
     );
   }
-  
+
   Widget _buildFrostedGlassContent(BuildContext context) {
     return SafeArea(
       child: Padding(
@@ -177,12 +180,10 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
               'Explore different emotional landscapes',
             ),
             const SizedBox(height: 24),
-            
+
             // Game cards grid
-            Expanded(
-              child: _buildGameGrid(),
-            ),
-            
+            Expanded(child: _buildGameGrid()),
+
             // Bottom info card
             _buildInfoCard(),
           ],
@@ -190,7 +191,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       ),
     );
   }
-  
+
   Widget _buildAnimatedSectionHeader(String title, String subtitle) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -244,11 +245,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       builder: (context, value, child) {
         return Transform.scale(
           scale: value,
-          child: Icon(
-            icon,
-            color: color,
-            size: 28,
-          ),
+          child: Icon(icon, color: color, size: 28),
         );
       },
       onEnd: () {
@@ -257,7 +254,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       },
     );
   }
-  
+
   Widget _buildGameGrid() {
     return GridView.builder(
       physics: const BouncingScrollPhysics(),
@@ -334,7 +331,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
     ];
 
     final game = gameData[index];
-    
+
     return Hero(
       tag: 'game-card-${game['title']}',
       child: Material(
@@ -400,9 +397,9 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
                             _buildStarRating(game['stars'] as int),
                           ],
                         ),
-                        
+
                         const Spacer(),
-                        
+
                         // Game title
                         Text(
                           game['title'] as String,
@@ -414,7 +411,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
                           ),
                         ),
                         const SizedBox(height: 4),
-                        
+
                         // Game description
                         Text(
                           game['description'] as String,
@@ -423,9 +420,9 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
                             fontSize: 14,
                           ),
                         ),
-                        
+
                         const SizedBox(height: 16),
-                        
+
                         // Play button
                         _buildPlayButton(),
                       ],
@@ -439,7 +436,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       ),
     );
   }
-  
+
   Widget _buildShimmeringIcon(IconData icon) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -447,26 +444,19 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       curve: Curves.easeInOut,
       builder: (context, value, child) {
         return ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.white.withOpacity(0.5),
-              Colors.white,
-            ],
-            stops: [
-              value - 0.3,
-              value,
-              value + 0.3,
-            ],
-            tileMode: TileMode.mirror,
-          ).createShader(bounds),
-          child: Icon(
-            icon,
-            size: 42,
-            color: Colors.white,
-          ),
+          shaderCallback:
+              (bounds) => LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.white.withOpacity(0.5),
+                  Colors.white,
+                ],
+                stops: [value - 0.3, value, value + 0.3],
+                tileMode: TileMode.mirror,
+              ).createShader(bounds),
+          child: Icon(icon, size: 42, color: Colors.white),
         );
       },
       onEnd: () {
@@ -475,7 +465,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       },
     );
   }
-  
+
   Widget _buildStarRating(int stars) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -489,11 +479,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
               scale: value,
               child: Padding(
                 padding: const EdgeInsets.only(left: 2),
-                child: Icon(
-                  Icons.star,
-                  size: 14,
-                  color: Colors.white,
-                ),
+                child: Icon(Icons.star, size: 14, color: Colors.white),
               ),
             );
           },
@@ -501,7 +487,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       }),
     );
   }
-  
+
   Widget _buildPlayButton() {
     return Row(
       children: [
@@ -530,7 +516,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       ],
     );
   }
-  
+
   void _navigateToGame(BuildContext context, Map<String, dynamic> game) {
     if (game.containsKey('path')) {
       Navigator.pushNamed(context, game['path'] as String);
@@ -538,20 +524,18 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       Navigator.push(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => 
-            (game['screenBuilder'] as Widget Function(BuildContext))(context),
+          pageBuilder:
+              (context, animation, secondaryAnimation) => (game['screenBuilder']
+                  as Widget Function(BuildContext))(context),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
           transitionDuration: const Duration(milliseconds: 500),
         ),
       );
     }
   }
-  
+
   Widget _buildInfoCard() {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: _isLoaded ? 1.0 : 0.0),
@@ -572,10 +556,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.2),
-            width: 1.5,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
         ),
         child: Row(
           children: [
@@ -626,45 +607,46 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.6,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder:
+          (context) => BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Game Settings",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Game Settings",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                        color: Colors.deepPurple,
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    color: Colors.deepPurple,
-                  ),
+                  const SizedBox(height: 20),
+                  // Settings options would go here
                 ],
               ),
-              const SizedBox(height: 20),
-              // Settings options would go here
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 }
@@ -673,7 +655,7 @@ class _GamesScreenState extends State<GamesScreen> with SingleTickerProviderStat
 class ParticlesPainter extends CustomPainter {
   final Animation<double> animation;
   final List<Particle> particles = [];
-  
+
   ParticlesPainter({required this.animation}) {
     if (particles.isEmpty) {
       // Generate random particles
@@ -682,7 +664,7 @@ class ParticlesPainter extends CustomPainter {
       }
     }
   }
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     for (var particle in particles) {
@@ -692,7 +674,7 @@ class ParticlesPainter extends CustomPainter {
         particle.originX * size.width,
         particle.originY * size.height + progress * size.height * 1.5,
       );
-      
+
       // Calculate opacity - fade in and out
       double opacity;
       if (progress < 0.3) {
@@ -702,19 +684,21 @@ class ParticlesPainter extends CustomPainter {
       } else {
         opacity = 1.0;
       }
-      
+
       // Adjust size based on animation
-      final currentSize = particle.size * (0.7 + 0.3 * math.sin(progress * math.pi));
-      
+      final currentSize =
+          particle.size * (0.7 + 0.3 * math.sin(progress * math.pi));
+
       // Draw particle
-      final paint = Paint()
-        ..color = particle.color.withOpacity(opacity * 0.6)
-        ..style = PaintingStyle.fill;
-      
+      final paint =
+          Paint()
+            ..color = particle.color.withOpacity(opacity * 0.6)
+            ..style = PaintingStyle.fill;
+
       canvas.drawCircle(position, currentSize, paint);
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
@@ -726,7 +710,7 @@ class Particle {
   final double size;
   final Color color;
   final double offset;
-  
+
   Particle({
     required this.originX,
     required this.originY,
@@ -734,10 +718,10 @@ class Particle {
     required this.color,
     required this.offset,
   });
-  
+
   factory Particle.random() {
     final random = math.Random();
-    
+
     // Create color variations for particles
     List<Color> colors = [
       Colors.white,
@@ -745,7 +729,7 @@ class Particle {
       Colors.purple.shade200,
       Colors.pink.shade200,
     ];
-    
+
     return Particle(
       originX: random.nextDouble(),
       originY: random.nextDouble() * 0.2 - 0.2, // Start above the screen
