@@ -49,6 +49,7 @@ dependencies:
   path_provider: ^2.1.0  # For handling file paths
   share_plus: ^7.0.2  # For sharing reports
   intl: ^0.18.1  # For date formatting
+  shared_preferences: ^2.5.3
 
 flutter_launcher_icons:
   android: true
