@@ -119,7 +119,7 @@ class _HappyScreenState extends State<HappyScreen>
 
       // Using 10.0.2.2 which maps to the host machine's localhost when running in an Android emulator
       // For physical devices, use your actual server IP address
-      final String apiUrl = '10.0.2.2:8080'; // For Android emulator
+      final String apiUrl = '192.168.1.5:5000'; // For Android emulator
 
       final response = await http
           .post(
