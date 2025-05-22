@@ -81,7 +81,7 @@ class _GamesScreenState extends State<GamesScreen>
           child: Transform.translate(
             offset: Offset(0, 20 * (1 - value)),
             child: const Text(
-              "Emotion World",
+              "Let's Play!",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
