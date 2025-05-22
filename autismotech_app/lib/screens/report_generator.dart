@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:autismotech_app/utils/pdf_generator.dart';
 
-/// Enhanced report generator dialog
-/// This class handles the PDF generation and displaying an animated loading dialog
+/// This class is deprecated. Use ReportGenerationHelper from utils/report_generator.dart instead.
+@Deprecated('Use ReportGenerationHelper from utils/report_generator.dart instead')
 class ReportGenerationHelper {
   
   /// Shows an animated loading dialog while generating the report
+  /// This method is deprecated. Use the version in utils/report_generator.dart instead.
+  @Deprecated('Use the version in utils/report_generator.dart instead')
   static Future<void> generateAndShareReport({
     required BuildContext context,
     required String result,
@@ -17,116 +19,88 @@ class ReportGenerationHelper {
     required String? imagePath,
     required AnimationController loadingController,
   }) async {
+    // Import the actual implementation
+    await _redirectToCorrectImplementation(
+      context: context,
+      result: result,
+      answers: answers,
+      questions: questions,
+      imagePath: imagePath,
+      loadingController: loadingController
+    );
+  }
+  
+  static Future<void> _redirectToCorrectImplementation({
+    required BuildContext context,
+    required String result,
+    required Map<String, int?> answers,
+    required List<Map<String, dynamic>> questions,
+    required String? imagePath,
+    required AnimationController loadingController,
+  }) async {
     try {
-      // Show enhanced loading dialog
-      showDialog(
+      // Redirect to correct implementation
+      print('Warning: Using deprecated ReportGenerationHelper, redirecting to correct implementation');
+      final actualHelper = await import('package:autismotech_app/utils/report_generator.dart');
+      await actualHelper.ReportGenerationHelper.generateAndShareReport(
         context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 16),
-                AnimatedBuilder(
-                  animation: loadingController,
-                  builder: (context, child) {
-                    return Transform.rotate(
-                      angle: loadingController.value * 2 * math.pi,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF39D8C9).withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const CircularProgressIndicator(
-                          color: Color(0xFF39D8C9),
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  "Generating Report",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF333333),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Creating a detailed PDF report of the diagnosis results...",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
-      );
-      
-      // Add haptic feedback
-      HapticFeedback.mediumImpact();
-      
-      // Generate PDF
-      final File pdfFile = await PdfGenerator.generateDiagnosisReport(
         result: result,
         answers: answers,
         questions: questions,
         imagePath: imagePath,
+        loadingController: loadingController,
       );
-      
-      // Close loading dialog
-      Navigator.of(context).pop();
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report generated successfully!'),
-          backgroundColor: Color(0xFF39D8C9),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      
-      // Share PDF
-      await PdfGenerator.sharePdf(pdfFile);
     } catch (e) {
-      // Close loading dialog if open
-      if (Navigator.of(context).canPop()) {
+      print('Error redirecting to correct implementation: $e');
+      // Fallback implementation
+      try {
+        // Show loading dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  const Text("Generating Report"),
+                ],
+              ),
+            ),
+          ),
+        );
+        
+        // Generate PDF
+        final File pdfFile = await PdfGenerator.generateDiagnosisReport(
+          result: result,
+          answers: answers,
+          questions: questions,
+          imagePath: imagePath,
+        );
+        
+        // Close loading dialog
         Navigator.of(context).pop();
+        
+        // Share PDF
+        await PdfGenerator.sharePdf(pdfFile);
+      } catch (fallbackError) {
+        // Handle errors in fallback implementation
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $fallbackError')),
+        );
       }
-      
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error generating report: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-        ),
-      );
     }
   }
 }

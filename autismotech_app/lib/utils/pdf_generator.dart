@@ -184,7 +184,7 @@ class PdfGenerator {
                       ),
                     ],
                   );
-                }),
+                }).toList(),
               ],
             ),
             
@@ -237,6 +237,11 @@ class PdfGenerator {
   }
 
   static Future<void> sharePdf(File pdf) async {
-    await Share.shareXFiles([XFile(pdf.path)], text: 'ASD Diagnosis Report');
+    try {
+      await Share.shareXFiles([XFile(pdf.path)], text: 'ASD Diagnosis Report');
+    } catch (e) {
+      print('Error sharing PDF: $e');
+      rethrow;
+    }
   }
 }

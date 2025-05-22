@@ -1,153 +1,253 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
-import 'package:autismotech_app/utils/pdf_generator.dart';
+import 'package:flutter/foundation.dart';
 
-/// Enhanced report generator with animation and user feedback
 class ReportGenerationHelper {
-  /// Shows an animated loading dialog while generating the report
   static Future<void> generateAndShareReport({
     required BuildContext context,
     required String result,
     required Map<String, int?> answers,
     required List<Map<String, dynamic>> questions,
-    required String? imagePath,
+    String? imagePath,
     required AnimationController loadingController,
   }) async {
-    if (!context.mounted) return;
+    print('ReportGenerationHelper.generateAndShareReport called');
+    print('Image path: $imagePath');
     
-    // Create a scaffold messenger key for showing snackbars
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    BuildContext dialogContext = context;
-    bool dialogOpen = true;
-
+    // Show a loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _buildLoadingDialog(context, loadingController),
+    );
+    
     try {
-      // Add haptic feedback
-      HapticFeedback.mediumImpact();
+      print('Starting PDF generation');
       
-      // Show enhanced loading dialog
-      if (!context.mounted) return;
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          dialogContext = context;
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 16),
-                  AnimatedBuilder(
-                    animation: loadingController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: loadingController.value * 2 * math.pi,
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF39D8C9).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircularProgressIndicator(
-                            color: Color(0xFF39D8C9),
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Generating Report",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Creating a detailed PDF report of the diagnosis results...",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-      
-      // Generate PDF
-      final File pdfFile = await PdfGenerator.generateDiagnosisReport(
+      // Generate the PDF file
+      final pdfFile = await _generatePdf(
         result: result,
         answers: answers,
         questions: questions,
         imagePath: imagePath,
       );
       
-      // Close loading dialog if still open
-      if (dialogOpen && Navigator.canPop(dialogContext)) {
-        Navigator.pop(dialogContext);
-        dialogOpen = false;
+      // Close the loading dialog
+      Navigator.of(context).pop();
+      
+      // Share the PDF file
+      if (pdfFile != null) {
+        await Share.shareXFiles(
+          [XFile(pdfFile.path)],
+          text: 'ASD Diagnosis Report',
+        );
+      } else {
+        throw Exception('Failed to generate PDF file');
       }
-      
-      if (!context.mounted) return;
-      
-      // Show success message
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Report generated successfully!'),
-          backgroundColor: Color(0xFF39D8C9),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      
-      // Add slight delay to improve UX
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      // Share PDF
-      await PdfGenerator.sharePdf(pdfFile);
-      
     } catch (e) {
-      print('Error generating report: $e');
-      // Close loading dialog if still open
-      if (dialogOpen && Navigator.canPop(dialogContext)) {
-        Navigator.pop(dialogContext);
+      // Close the loading dialog if it's still showing
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
       }
-      
-      if (!context.mounted) return;
-      
-      // Show error message with more details
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error generating report: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
+      print('Error in report generation: $e');
+      print('Stack trace: ${StackTrace.current}');
+      rethrow; // Re-throw to be caught by the calling function
+    }
+  }
+
+  static Widget _buildLoadingDialog(
+    BuildContext context, 
+    AnimationController controller,
+  ) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
         ),
-      );
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedBuilder(
+              animation: controller,
+              builder: (context, child) {
+                return CircularProgressIndicator(
+                  valueColor: controller.drive(
+                    ColorTween(
+                      begin: const Color(0xFF32B4FF),
+                      end: const Color(0xFF39D8C9),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Generating report...',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Future<File?> _generatePdf({
+    required String result,
+    required Map<String, int?> answers,
+    required List<Map<String, dynamic>> questions,
+    String? imagePath,
+  }) async {
+    // Create a PDF document
+    final pdf = pw.Document();
+    
+    // Add a logo or image if available (safely handling null)
+    pw.MemoryImage? profileImage;
+    if (imagePath != null && imagePath.isNotEmpty) {
+      try {
+        final imageFile = File(imagePath);
+        if (await imageFile.exists()) {
+          final imageBytes = await imageFile.readAsBytes();
+          profileImage = pw.MemoryImage(imageBytes);
+        } else {
+          print('Image file does not exist: $imagePath');
+        }
+      } catch (e) {
+        print('Error loading image: $e');
+        // Continue without the image
+      }
+    }
+    
+    // Add title page
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Text(
+                  'ASD Diagnosis Report',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 40),
+                if (profileImage != null)
+                  pw.Container(
+                    width: 200,
+                    height: 200,
+                    decoration: pw.BoxDecoration(
+                      borderRadius: pw.BorderRadius.circular(10),
+                    ),
+                    child: pw.Image(profileImage),
+                  ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Result: $result',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Date: ${DateTime.now().toString().split(' ')[0]}',
+                  style: const pw.TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+    
+    // Add details page
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          final List<pw.Widget> questionRows = [];
+          
+          for (final q in questions) {
+            final String question = q['question'] as String;
+            final String field = q['field'] as String;
+            final int? answer = answers[field];
+            
+            String answerText = 'Not answered';
+            if (answer != null) {
+              if (field == 'feature10') {
+                answerText = answer == 1 ? 'Always/Usually/Sometimes' : 'Rarely/Never';
+              } else if (field == 'feature11') {
+                answerText = answer == 1 ? 'Male' : 'Female';
+              } else if (field == 'feature12') {
+                answerText = answer == 1 ? 'Yes' : 'No';
+              } else {
+                answerText = answer == 0 ? 'Always/Usually' : 'Sometimes/Rarely/Never';
+              }
+            }
+            
+            questionRows.add(
+              pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 10),
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  color: const PdfColor(0.95, 0.95, 0.95),
+                  borderRadius: pw.BorderRadius.circular(5),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      question,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.SizedBox(height: 5),
+                    pw.Text('Answer: $answerText'),
+                  ],
+                ),
+              ),
+            );
+          }
+          
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Questionnaire Responses',
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              ...questionRows,
+            ],
+          );
+        },
+      ),
+    );
+    
+    // Save the PDF to a file
+    try {
+      final output = await getTemporaryDirectory();
+      final file = File('${output.path}/asd_diagnosis_report.pdf');
+      await file.writeAsBytes(await pdf.save());
+      return file;
+    } catch (e) {
+      print('Error saving PDF: $e');
+      return null;
     }
   }
 }

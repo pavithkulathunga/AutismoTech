@@ -1466,6 +1466,20 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
     try {
       setState(() => _isLoading = true);
       
+      // Show debug info
+      print('Starting report generation with image: ${_pickedImage?.path}');
+      
+      // Check if the image exists before proceeding
+      if (_pickedImage == null || _pickedImage!.path.isEmpty) {
+        throw Exception("Image is not available or invalid");
+      }
+      
+      // Verify file exists
+      final imageFile = File(_pickedImage!.path);
+      if (!await imageFile.exists()) {
+        throw Exception("Image file does not exist at path: ${_pickedImage!.path}");
+      }
+      
       // Use the report generation helper to show animated dialog
       await ReportGenerationHelper.generateAndShareReport(
         context: context,
@@ -1478,6 +1492,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
       
       setState(() => _isLoading = false);
     } catch (e) {
+      print('Error in _generateAndShareReport: $e');
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
