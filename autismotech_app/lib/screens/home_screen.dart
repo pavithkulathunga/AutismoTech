@@ -529,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     icon: Icons.trending_up,
                                     label: 'Progress Prediction',
                                     color: const Color(0xFF5C6BC0), // Indigo color
-                                    routeName: '/progress-prediction',
+                                    routeName: '/login',
                                     size: tileSize,
                                     iconSize: iconSize,
                                     fontSize: tileFontSize,

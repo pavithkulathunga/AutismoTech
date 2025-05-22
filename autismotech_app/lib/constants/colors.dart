@@ -22,4 +22,16 @@ class AppColors {
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
   static const textLight = Color(0xFFFFFFFF);
+
+  //progress
+
+  static const Color primaryColor = Color(0xFF00B4D8);
+  static const Color secondaryColor = Color(0xFF90E0EF);
+  static const Color darkBlue = Color(0xFF03045E);
+  static const Color textColor = Colors.black;
+  static const Color borderColor = Colors.blue;
+  static const Color goodBorder = Color(
+    0xFF58C322,
+  ); // Green border for positive progress
+  static const Color severeBorder = Color(0xFFD41111);
 }
