@@ -16,30 +16,39 @@ class PdfGenerator {
     String? imagePath,
   }) async {
     final pdf = pw.Document();
-    final ByteData logoData = await rootBundle.load('assets/icons/app_icon.png');
-    final Uint8List logoBytes = logoData.buffer.asUint8List();
+    
+    // Load and handle the logo with error handling
+    Uint8List? logoBytes;
+    try {
+      final ByteData logoData = await rootBundle.load('assets/icons/app_icon.png');
+      logoBytes = logoData.buffer.asUint8List();
+    } catch (e) {
+      print('Warning: Could not load logo: $e');
+      // Continue without the logo
+    }
 
     // Format the current date
     final now = DateTime.now();
     final formatter = DateFormat('MMMM d, yyyy');
     final formattedDate = formatter.format(now);
 
+    // Handle the child's image
     pw.Widget? imageWidget;
     if (imagePath != null) {
       try {
         final file = File(imagePath);
         if (await file.exists()) {
           final imageBytes = await file.readAsBytes();
-          final image = pw.MemoryImage(imageBytes);
           imageWidget = pw.Container(
             height: 200,
             width: 200,
             alignment: pw.Alignment.center,
-            child: pw.Image(image, fit: pw.BoxFit.contain),
+            child: pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.contain),
           );
         }
       } catch (e) {
-        print('Error loading image: $e');
+        print('Warning: Could not load diagnostic image: $e');
+        // Continue without the image
       }
     }
 
@@ -56,9 +65,11 @@ class PdfGenerator {
                 children: [
                   pw.Row(
                     children: [
-                      pw.Image(pw.MemoryImage(logoBytes),
-                          width: 50, height: 50),
-                      pw.SizedBox(width: 10),
+                      if (logoBytes != null) ...[
+                        pw.Image(pw.MemoryImage(logoBytes),
+                            width: 50, height: 50),
+                        pw.SizedBox(width: 10),
+                      ],
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
