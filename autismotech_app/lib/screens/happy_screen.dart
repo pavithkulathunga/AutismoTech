@@ -1091,6 +1091,31 @@ class _HappyScreenState extends State<HappyScreen>
                   ],
                 ),
               ),
+
+              // Camera preview for emotion detection
+              if (_cameraController != null &&
+                  _cameraController!.value.isInitialized)
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: Container(
+                    height: 100,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: CameraPreview(_cameraController!),
+                  ),
+                ),
             ],
           ),
         ),
