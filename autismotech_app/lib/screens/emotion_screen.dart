@@ -1867,31 +1867,36 @@ class _EmotionScreenState extends State<EmotionScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final reports = prefs.getStringList('happy_hills_reports') ?? [];
-      
+
       if (reports.isNotEmpty) {
         setState(() {
           // Process and add Happy Hills reports to session reports
           for (var reportJson in reports) {
             try {
               final Map<String, dynamic> data = jsonDecode(reportJson);
-              
+
               // Convert timestamp back to DateTime
-              data['date'] = DateTime.fromMillisecondsSinceEpoch(data['date'] as int);
-              
+              data['date'] = DateTime.fromMillisecondsSinceEpoch(
+                data['date'] as int,
+              );
+
               // Make emotionMetrics values integers instead of doubles for consistency with mock data
               final Map<String, dynamic> emotionMetrics = {};
-              (data['emotionMetrics'] as Map<String, dynamic>).forEach((emotion, value) {
+              (data['emotionMetrics'] as Map<String, dynamic>).forEach((
+                emotion,
+                value,
+              ) {
                 emotionMetrics[emotion] = (value as double).round();
               });
               data['emotionMetrics'] = emotionMetrics;
-              
+
               // Add report to the beginning of the list (most recent first)
               _sessionReports.insert(0, data);
             } catch (e) {
               print('Error parsing Happy Hills report: $e');
             }
           }
-          
+
           // Limit the number of reports if there are too many
           if (_sessionReports.length > 10) {
             _sessionReports = _sessionReports.sublist(0, 10);

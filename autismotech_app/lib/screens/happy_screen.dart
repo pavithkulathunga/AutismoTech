@@ -348,7 +348,7 @@ class _HappyScreenState extends State<HappyScreen>
         "The child maintained a positive emotional state for a significant portion of the game.",
       );
     }
-    
+
     // Save session data for professional reports
     _saveSessionData(
       dominantEmotion: dominantEmotion,
@@ -1109,7 +1109,7 @@ class _HappyScreenState extends State<HappyScreen>
         ? DateTime.now().difference(_sessionStartTime!).inSeconds
         : 0;
   }
-  
+
   // Save session data for professional reports
   Future<void> _saveSessionData({
     required String dominantEmotion,
@@ -1119,7 +1119,7 @@ class _HappyScreenState extends State<HappyScreen>
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Create report data
       final Map<String, dynamic> reportData = {
         'id': 'AUX-${Random().nextInt(9000) + 1000}',
@@ -1132,21 +1132,21 @@ class _HappyScreenState extends State<HappyScreen>
         'score': score,
         'emotionTimeline': _emotionTimeline,
       };
-      
+
       // Get existing reports or create empty list
       List<String> reports = prefs.getStringList('happy_hills_reports') ?? [];
-      
+
       // Add new report
       reports.add(jsonEncode(reportData));
-      
+
       // Store limited number of reports (keep last 10)
       if (reports.length > 10) {
         reports = reports.sublist(reports.length - 10);
       }
-      
+
       // Save to shared preferences
       await prefs.setStringList('happy_hills_reports', reports);
-      
+
       print('Happy Hills session data saved for professional reports');
     } catch (e) {
       print('Error saving Happy Hills session data: $e');
