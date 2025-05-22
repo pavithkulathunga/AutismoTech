@@ -1,13 +1,187 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EmotionScreen extends StatefulWidget {
   const EmotionScreen({super.key});
 
   @override
   State<EmotionScreen> createState() => _EmotionScreenState();
+}
+
+// Custom painter for emotion timeline chart
+class TimelineChartPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Define colors
+    final happyColor = Colors.amber.shade600;
+    final neutralColor = Colors.green.shade600;
+    final sadColor = Colors.blue.shade600;
+
+    // Define paint objects
+    final linePaint =
+        Paint()
+          ..color = Colors.amber.shade400
+          ..strokeWidth = 3
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+
+    final dotPaint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+
+    final dotStrokePaint =
+        Paint()
+          ..color = Colors.amber.shade600
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
+
+    // Define emotional heights (y values)
+    final happyY = size.height * 0.2;
+    final neutralY = size.height * 0.5;
+    final sadY = size.height * 0.8;
+
+    // Define points
+    final points = [
+      Offset(size.width * 0.05, neutralY),
+      Offset(size.width * 0.2, happyY),
+      Offset(size.width * 0.3, happyY),
+      Offset(size.width * 0.4, neutralY),
+      Offset(size.width * 0.5, sadY),
+      Offset(size.width * 0.6, neutralY),
+      Offset(size.width * 0.75, happyY),
+      Offset(size.width * 0.9, happyY),
+    ];
+
+    // Draw emotion zones (background)
+    final zonePaint = Paint()..style = PaintingStyle.fill;
+
+    // Happy zone
+    zonePaint.color = happyColor.withOpacity(0.1);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, happyY + (neutralY - happyY) / 2),
+      zonePaint,
+    );
+
+    // Neutral zone
+    zonePaint.color = neutralColor.withOpacity(0.1);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        0,
+        happyY + (neutralY - happyY) / 2,
+        size.width,
+        (neutralY - happyY) / 2 + (sadY - neutralY) / 2,
+      ),
+      zonePaint,
+    );
+
+    // Sad zone
+    zonePaint.color = sadColor.withOpacity(0.1);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        0,
+        neutralY + (sadY - neutralY) / 2,
+        size.width,
+        size.height - neutralY - (sadY - neutralY) / 2,
+      ),
+      zonePaint,
+    );
+
+    // Draw horizontal emotion lines
+    final dashedPaint =
+        Paint()
+          ..color = Colors.grey.withOpacity(0.5)
+          ..strokeWidth = 1;
+
+    // Draw dashed horizontal lines
+    _drawDashedLine(
+      canvas,
+      Offset(0, happyY),
+      Offset(size.width, happyY),
+      dashedPaint,
+    );
+    _drawDashedLine(
+      canvas,
+      Offset(0, neutralY),
+      Offset(size.width, neutralY),
+      dashedPaint,
+    );
+    _drawDashedLine(
+      canvas,
+      Offset(0, sadY),
+      Offset(size.width, sadY),
+      dashedPaint,
+    );
+
+    // Draw the emotional timeline
+    final path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+
+    for (int i = 1; i < points.length; i++) {
+      final p0 = i > 0 ? points[i - 1] : points[0];
+      final p1 = points[i];
+      final controlPointX = p0.dx + (p1.dx - p0.dx) / 2;
+
+      path.cubicTo(controlPointX, p0.dy, controlPointX, p1.dy, p1.dx, p1.dy);
+    }
+
+    canvas.drawPath(path, linePaint);
+
+    // Draw dots at each point
+    for (final point in points) {
+      canvas.drawCircle(point, 5, dotPaint);
+      canvas.drawCircle(point, 5, dotStrokePaint);
+    }
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    double dashLength = 5,
+    double dashSpace = 5,
+  }) {
+    // Create path for dashed line
+    final path = Path()..moveTo(start.dx, start.dy);
+
+    // Calculate length of line
+    final dx = end.dx - start.dx;
+    final dy = end.dy - start.dy;
+    final length = sqrt(dx * dx + dy * dy);
+
+    // Calculate dash count
+    final dashCount = (length / (dashLength + dashSpace)).floor();
+
+    // Calculate step vector
+    final stepX = dx / dashCount / (dashLength + dashSpace);
+    final stepY = dy / dashCount / (dashLength + dashSpace);
+
+    // Draw dashes
+    double startX = start.dx;
+    double startY = start.dy;
+
+    for (int i = 0; i < dashCount; i++) {
+      final endX = startX + stepX * dashLength;
+      final endY = startY + stepY * dashLength;
+
+      path.moveTo(startX, startY);
+      path.lineTo(endX, endY);
+
+      startX += stepX * (dashLength + dashSpace);
+      startY += stepY * (dashLength + dashSpace);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
 class _EmotionScreenState extends State<EmotionScreen>
@@ -17,8 +191,8 @@ class _EmotionScreenState extends State<EmotionScreen>
   late TabController _tabController;
   bool _isLoading = false;
 
-  // Mock data for reports
-  final List<Map<String, dynamic>> _sessionReports = [
+  // Reports data - changed from final to allow updates
+  List<Map<String, dynamic>> _sessionReports = [
     {
       'id': 'AUX-1234',
       'date': DateTime.now().subtract(const Duration(days: 1)),
@@ -62,6 +236,8 @@ class _EmotionScreenState extends State<EmotionScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Load Happy Hills reports when accessing professional section
+    _loadHappyHillsReports();
   }
 
   @override
@@ -116,7 +292,13 @@ class _EmotionScreenState extends State<EmotionScreen>
     ScrollController controller,
   ) {
     final dateFormatted = DateFormat('MMMM d, y').format(report['date']);
-    final timeFormatted = DateFormat('h:mm a').format(report['date']);
+    final isHappyHills = report['game'] == 'Happy Hills';
+
+    // Define color scheme based on game
+    final List<Color> headerColors =
+        isHappyHills
+            ? [Colors.amber.shade600, Colors.amber.shade800]
+            : [Colors.green.shade700, Colors.green.shade900];
 
     return Container(
       decoration: const BoxDecoration(
@@ -125,49 +307,94 @@ class _EmotionScreenState extends State<EmotionScreen>
       ),
       child: Column(
         children: [
-          // Report header
+          // Enhanced report header
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
               gradient: LinearGradient(
-                colors: [Colors.green.shade700, Colors.green.shade900],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                colors: headerColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: headerColors[1].withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.analytics, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Detailed Session Report',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Icon(
+                      isHappyHills ? Icons.psychology : Icons.analytics,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Clinical Analysis',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          if (isHappyHills)
+                            TextSpan(
+                              text: ' • Happy Hills',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${report['game']} - ${report['id']}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w500,
+                const SizedBox(height: 10),
+                // Report metadata bar
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildHeaderStat(
+                        Icons.calendar_today_rounded,
+                        dateFormatted,
+                      ),
+                      _buildHeaderStat(
+                        Icons.access_time_rounded,
+                        '${report['duration']} min',
+                      ),
+                      _buildHeaderStat(Icons.tag_rounded, report['id']),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 Container(
                   width: 40,
-                  height: 4,
+                  height: 5,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(10),
@@ -181,201 +408,818 @@ class _EmotionScreenState extends State<EmotionScreen>
           Expanded(
             child: ListView(
               controller: controller,
-              padding: const EdgeInsets.all(20),
+              padding:
+                  isHappyHills ? EdgeInsets.zero : const EdgeInsets.all(20),
               children: [
-                // Session metadata
-                _buildInfoRow('Date', dateFormatted),
-                _buildInfoRow('Time', timeFormatted),
-                _buildInfoRow('Duration', '${report['duration']} minutes'),
-                _buildInfoRow('Score', '${report['score']}/100'),
+                if (isHappyHills) _buildHappyHillsSummaryCard(report),
 
-                const Divider(height: 32),
-
-                // Emotion distribution chart
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Emotion Distribution',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      height: 200,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: _buildEmotionChart(report['emotionMetrics']),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Clinical observations
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Clinical Observations',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Performance summary
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Professional performance cards row
+                      Row(
                         children: [
-                          _buildObservationItem(
-                            title: 'Primary Emotional State',
-                            value:
-                                '${_capitalizeFirst(report['dominantEmotion'])} (${report['emotionMetrics'][report['dominantEmotion']]}%)',
-                            iconData: Icons.psychology,
+                          _buildPerformanceCard(
+                            title: 'Score',
+                            value: '${report['score']}',
+                            subtitle: _getScoreLabel(report['score']),
+                            icon: Icons.leaderboard_rounded,
+                            color: _getScoreColor(report['score']),
+                            isLarge: true,
+                            units: '/100',
                           ),
-                          const SizedBox(height: 16),
-                          _buildObservationItem(
-                            title: 'Engagement Level',
+                          const SizedBox(width: 12),
+                          _buildPerformanceCard(
+                            title: 'Engagement',
                             value: _getEngagementLevel(report['score']),
-                            iconData: Icons.show_chart,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildObservationItem(
-                            title: 'Clinical Notes',
-                            value: report['notes'],
-                            iconData: Icons.note_alt,
-                            isMultiLine: true,
+                            icon: Icons.insights_rounded,
+                            color: _getEngagementColor(
+                              _getEngagementLevel(report['score']),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      // Emotion-based metrics
+                      Row(
+                        children: [
+                          _buildPerformanceCard(
+                            title: 'Primary Emotion',
+                            value: _capitalizeFirst(report['dominantEmotion']),
+                            icon: Icons.emoji_emotions_rounded,
+                            color: _getEmotionColor(report['dominantEmotion']),
+                            subtitle:
+                                '${report['emotionMetrics'][report['dominantEmotion']]}% of session',
+                            showEmoji: true,
+                            emotion: report['dominantEmotion'],
+                          ),
+                          const SizedBox(width: 12),
+                          _buildPerformanceCard(
+                            title: 'Emotional Range',
+                            value: _getEmotionalRangeValue(
+                              report['emotionMetrics'],
+                            ),
+                            icon: Icons.diversity_3_rounded,
+                            color: _getEmotionalRangeColor(
+                              _getEmotionalRangeValue(report['emotionMetrics']),
+                            ),
+                            subtitle: _getEmotionalRangeDescription(
+                              _getEmotionalRangeValue(report['emotionMetrics']),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+
+                // Enhanced emotion distribution chart
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        'Emotion Distribution',
+                        Icons.pie_chart_rounded,
+                        isHappyHills
+                            ? Colors.amber.shade700
+                            : Colors.green.shade700,
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        height: 220,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.15),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          border:
+                              isHappyHills
+                                  ? Border.all(
+                                    color: Colors.amber.shade200,
+                                    width: 1.5,
+                                  )
+                                  : null,
+                        ),
+                        child: _buildEnhancedEmotionChart(
+                          report['emotionMetrics'],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 24),
 
-                // Recommendations
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Recommendations',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                // Clinical observations with improved design
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        'Clinical Observations',
+                        Icons.psychology_alt_rounded,
+                        isHappyHills
+                            ? Colors.amber.shade700
+                            : Colors.green.shade700,
                       ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.15),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          border:
+                              isHappyHills
+                                  ? Border.all(
+                                    color: Colors.amber.shade200,
+                                    width: 1.5,
+                                  )
+                                  : null,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildEnhancedObservationItem(
+                              title: 'Emotional Response',
+                              value:
+                                  isHappyHills
+                                      ? 'Consistent positive emotional state throughout most of the session with ${report['emotionMetrics'][report['dominantEmotion']]}% ${report['dominantEmotion']} responses'
+                                      : '${_capitalizeFirst(report['dominantEmotion'])} was the primary emotional state observed during this session.',
+                              iconData: Icons.face_retouching_natural,
+                              iconColor: _getEmotionColor(
+                                report['dominantEmotion'],
+                              ),
+                              isHappyHills: isHappyHills,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildEnhancedObservationItem(
+                              title: 'Attention & Engagement',
+                              value:
+                                  isHappyHills
+                                      ? 'Demonstrated ${_getEngagementLevel(report['score']).toLowerCase()} levels of engagement with consistent focus on game activities'
+                                      : 'Patient showed ${_getEngagementLevel(report['score']).toLowerCase()} engagement throughout the session.',
+                              iconData: Icons.visibility,
+                              iconColor: _getEngagementColor(
+                                _getEngagementLevel(report['score']),
+                              ),
+                              isHappyHills: isHappyHills,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildEnhancedObservationItem(
+                              title: 'Clinical Assessment',
+                              value: report['notes'],
+                              iconData: Icons.note_alt,
+                              iconColor:
+                                  isHappyHills
+                                      ? Colors.amber.shade700
+                                      : Colors.green.shade700,
+                              isMultiLine: true,
+                              isHappyHills: isHappyHills,
+                            ),
+
+                            if (isHappyHills) ...[
+                              const SizedBox(height: 20),
+                              _buildEnhancedObservationItem(
+                                title: 'Emotional Transitions',
+                                value:
+                                    'Patient showed smooth transitions between emotional states with minimal distress during changes in game difficulty.',
+                                iconData: Icons.sync_alt,
+                                iconColor: Colors.blue.shade700,
+                                isHappyHills: isHappyHills,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Visual patterns section for Happy Hills
+                if (isHappyHills)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(
+                          'Emotional Pattern Analysis',
+                          Icons.ssid_chart,
+                          Colors.amber.shade700,
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.15),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.amber.shade200,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              // Timeline visualization
+                              SizedBox(
+                                height: 100,
+                                child: _buildEmotionTimelineVisualization(),
+                              ),
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 16),
+                              // Analysis text
+                              Text(
+                                'The patient maintained consistent emotional states during similar activities, '
+                                'suggesting good emotional regulation. Transitions between emotions were triggered '
+                                'primarily by changes in game difficulty and reward events.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Recommendations with actionable insights
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        'Clinical Recommendations',
+                        Icons.lightbulb_rounded,
+                        isHappyHills
+                            ? Colors.amber.shade700
+                            : Colors.green.shade700,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildRecommendationItem(
-                            'Continue with regular emotional recognition exercises',
-                          ),
-                          _buildRecommendationItem(
-                            'Focus on transition scenarios that triggered ${report['dominantEmotion'] == 'happy' ? 'positive' : 'challenging'} emotions',
-                          ),
-                          _buildRecommendationItem(
-                            'Practice ${_getRecommendedActivity(report['dominantEmotion'])} to build on current progress',
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.15),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          border:
+                              isHappyHills
+                                  ? Border.all(
+                                    color: Colors.amber.shade200,
+                                    width: 1.5,
+                                  )
+                                  : null,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildEnhancedRecommendationItem(
+                              'Continue with regular emotional recognition exercises focused on ${report['dominantEmotion'] == 'happy' ? 'maintaining positive emotional states' : 'improving ' + report['dominantEmotion'] + ' recognition'}',
+                              priority: 'High',
+                              isHappyHills: isHappyHills,
+                            ),
+                            _buildEnhancedRecommendationItem(
+                              'Focus on transition scenarios that triggered ${report['dominantEmotion'] == 'happy' ? 'positive' : 'challenging'} emotions during gameplay to build emotional resilience',
+                              priority: 'Medium',
+                              isHappyHills: isHappyHills,
+                            ),
+                            _buildEnhancedRecommendationItem(
+                              'Practice ${_getRecommendedActivity(report['dominantEmotion'])} to build on current progress and strengthen emotional intelligence',
+                              priority: 'Medium',
+                              isHappyHills: isHappyHills,
+                            ),
+                            if (isHappyHills)
+                              _buildEnhancedRecommendationItem(
+                                'Gradually increase game difficulty to challenge emotional regulation skills while maintaining engagement',
+                                priority: 'Low',
+                                isHappyHills: isHappyHills,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Download PDF functionality would go here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Downloading PDF report...'),
+                // Actions with improved styling
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // Download PDF functionality would go here
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Downloading clinical report as PDF...',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text('Export Report'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isHappyHills
+                                    ? Colors.amber.shade700
+                                    : Colors.green.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.download),
-                      label: const Text('Export PDF'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // Share functionality would go here
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Sharing report with healthcare team...',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.share_rounded, size: 18),
+                          label: const Text('Share Report'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor:
+                                isHappyHills
+                                    ? Colors.amber.shade700
+                                    : Colors.green.shade700,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color:
+                                    isHappyHills
+                                        ? Colors.amber.shade300
+                                        : Colors.green.shade300,
+                              ),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Happy Hills summary card
+  Widget _buildHappyHillsSummaryCard(Map<String, dynamic> report) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.amber.shade500, Colors.amber.shade700],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.amber.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.psychology,
+                  color: Colors.amber.shade700,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Happy Hills Therapy Game',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Share functionality would go here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Sharing report...')),
-                        );
-                      },
-                      icon: const Icon(Icons.share),
-                      label: const Text('Share'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    Text(
+                      'Emotional intelligence training',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.9),
                       ),
                     ),
                   ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_graph_rounded,
+                      size: 14,
+                      color: Colors.amber.shade700,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'AI Analysis',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildHappyHillsStatBox(
+                'Engagement',
+                '${report['score']}%',
+                Colors.white,
+              ),
+              _buildHappyHillsStatBox(
+                'Primary Emotion',
+                _capitalizeFirst(report['dominantEmotion']),
+                _getEmotionColor(report['dominantEmotion']),
+                showEmoji: true,
+                emotion: report['dominantEmotion'],
+              ),
+              _buildHappyHillsStatBox(
+                'Emotional Range',
+                _getEmotionalRangeValue(report['emotionMetrics']),
+                Colors.white,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Happy Hills stat box
+  Widget _buildHappyHillsStatBox(
+    String label,
+    String value,
+    Color textColor, {
+    bool showEmoji = false,
+    String emotion = '',
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            if (showEmoji)
+              Text(
+                _getEmotionEmoji(emotion),
+                style: const TextStyle(fontSize: 18),
+              ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Performance card widget
+  Widget _buildPerformanceCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    String? subtitle,
+    bool isLarge = false,
+    String units = '',
+    bool showEmoji = false,
+    String emotion = '',
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 14, color: color),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                if (showEmoji) ...[
+                  Text(
+                    _getEmotionEmoji(emotion),
+                    style: TextStyle(fontSize: isLarge ? 22 : 18),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: value,
+                        style: TextStyle(
+                          fontSize: isLarge ? 24 : 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      if (units.isNotEmpty)
+                        TextSpan(
+                          text: units,
+                          style: TextStyle(
+                            fontSize: isLarge ? 16 : 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Header stat for report header
+  Widget _buildHeaderStat(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white, size: 14),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
+        ),
+      ],
+    );
+  }
+
+  // Modern section header
+  Widget _buildSectionHeader(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Enhanced emotion chart
+  Widget _buildEnhancedEmotionChart(Map<String, dynamic> emotionData) {
+    // Create sorted list of emotions
+    final List<MapEntry<String, dynamic>> sortedEmotions =
+        emotionData.entries.toList()
+          ..sort((a, b) => (b.value as num).compareTo(a.value as num));
+
+    return Row(
+      children: [
+        // Modern donut chart - takes 60% of space
+        Expanded(flex: 6, child: _buildModernDonutChart(sortedEmotions)),
+
+        // Legend and statistics - takes 40% of space
+        Expanded(
+          flex: 4,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Emotion Breakdown',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Show top 5 emotions or all if less than 5
+                ...sortedEmotions
+                    .take(5)
+                    .map(
+                      (entry) => _buildEmotionLegendItem(
+                        entry.key,
+                        entry.value as int,
+                        _getEmotionColor(entry.key),
+                      ),
+                    )
+                    .toList(),
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 12),
+                Text(
+                  'Primary: ${_capitalizeFirst(sortedEmotions.first.key)} (${sortedEmotions.first.value}%)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: _getEmotionColor(sortedEmotions.first.key),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Emotion legend item
+  Widget _buildEmotionLegendItem(String emotion, int percentage, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          // Color indicator
+          Container(
+            height: 12,
+            width: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          // Emotion text
+          Text(_getEmotionEmoji(emotion), style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          // Emotion name and percentage
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  _capitalizeFirst(emotion),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+                ),
+                const Spacer(),
+                Text(
+                  '$percentage%',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
                 ),
               ],
             ),
@@ -383,6 +1227,321 @@ class _EmotionScreenState extends State<EmotionScreen>
         ],
       ),
     );
+  }
+
+  // Modern donut chart placeholder
+  Widget _buildModernDonutChart(
+    List<MapEntry<String, dynamic>> sortedEmotions,
+  ) {
+    // This would ideally be implemented with a proper chart library
+    // For now, we'll display a placeholder
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey.shade100,
+            ),
+          ),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _getEmotionEmoji(sortedEmotions.first.key),
+                  style: const TextStyle(fontSize: 24),
+                ),
+                Text(
+                  '${sortedEmotions.first.value}%',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                Text(
+                  _capitalizeFirst(sortedEmotions.first.key),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+          // This would be replaced with actual chart segments
+          ...List.generate(sortedEmotions.length, (index) {
+            final startAngle = index * (2 * 3.14159 / sortedEmotions.length);
+            final endAngle =
+                (index + 1) * (2 * 3.14159 / sortedEmotions.length);
+            final emotion = sortedEmotions[index].key;
+
+            return Positioned(
+              top: 75 + 60 * sin((startAngle + endAngle) / 2),
+              left: 75 + 60 * cos((startAngle + endAngle) / 2),
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: _getEmotionColor(emotion),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _getEmotionEmoji(emotion),
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Enhanced observation item
+  Widget _buildEnhancedObservationItem({
+    required String title,
+    required String value,
+    required IconData iconData,
+    required Color iconColor,
+    bool isMultiLine = false,
+    bool isHappyHills = false,
+  }) {
+    return Row(
+      crossAxisAlignment:
+          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(iconData, color: iconColor, size: 20),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color:
+                      isHappyHills
+                          ? Colors.amber.shade800
+                          : Colors.green.shade800,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Enhanced recommendation item
+  Widget _buildEnhancedRecommendationItem(
+    String text, {
+    required String priority,
+    required bool isHappyHills,
+  }) {
+    final Color priorityColor =
+        priority == 'High'
+            ? Colors.red.shade400
+            : (priority == 'Medium'
+                ? Colors.orange.shade400
+                : Colors.blue.shade400);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: priorityColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: priorityColor.withOpacity(0.3)),
+            ),
+            child: Text(
+              priority,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: priorityColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Emotion timeline visualization placeholder
+  Widget _buildEmotionTimelineVisualization() {
+    // This would be ideally implemented with a proper chart library
+    // For now, creating a simplified visualization
+    return Row(
+      children: [
+        // Y-axis labels
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('😃', style: TextStyle(fontSize: 14)),
+            Text('😐', style: TextStyle(fontSize: 14)),
+            Text('😢', style: TextStyle(fontSize: 14)),
+          ],
+        ),
+        const SizedBox(width: 8),
+        // Timeline chart
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(color: Colors.grey.shade300),
+                bottom: BorderSide(color: Colors.grey.shade300),
+              ),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: CustomPaint(
+                    size: const Size(double.infinity, double.infinity),
+                    painter: TimelineChartPainter(),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Start',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      'Time',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      'End',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper method for emotional range calculation
+  String _getEmotionalRangeValue(Map<String, dynamic> emotionMetrics) {
+    int nonZeroEmotions = 0;
+    emotionMetrics.forEach((emotion, value) {
+      if ((value as int) > 5) nonZeroEmotions++;
+    });
+
+    if (nonZeroEmotions >= 4) return 'High';
+    if (nonZeroEmotions >= 2) return 'Moderate';
+    return 'Low';
+  }
+
+  // Helper for emotional range description
+  String _getEmotionalRangeDescription(String range) {
+    switch (range) {
+      case 'High':
+        return 'Wide variety of emotions';
+      case 'Moderate':
+        return 'Some emotional variation';
+      case 'Low':
+        return 'Limited emotional range';
+      default:
+        return '';
+    }
+  }
+
+  // Helper for emotional range color
+  Color _getEmotionalRangeColor(String range) {
+    switch (range) {
+      case 'High':
+        return Colors.purple.shade600;
+      case 'Moderate':
+        return Colors.blue.shade600;
+      case 'Low':
+        return Colors.orange.shade600;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Helper for score color
+  Color _getScoreColor(int score) {
+    if (score >= 80) return Colors.green.shade600;
+    if (score >= 60) return Colors.amber.shade600;
+    return Colors.red.shade600;
+  }
+
+  // Helper for engagement color
+  Color _getEngagementColor(String engagement) {
+    switch (engagement) {
+      case 'High':
+        return Colors.green.shade600;
+      case 'Moderate':
+        return Colors.blue.shade600;
+      case 'Variable':
+        return Colors.amber.shade600;
+      case 'Low':
+        return Colors.red.shade600;
+      default:
+        return Colors.grey;
+    }
   }
 
   String _getEngagementLevel(int score) {
@@ -409,6 +1568,9 @@ class _EmotionScreenState extends State<EmotionScreen>
     }
   }
 
+  // This is an implementation of a bar chart for emotion data
+  // Currently using the _buildEnhancedEmotionChart with donut visualization instead
+  /*
   Widget _buildEmotionChart(Map<String, dynamic> emotionData) {
     return Row(
       children: [
@@ -517,7 +1679,11 @@ class _EmotionScreenState extends State<EmotionScreen>
       ],
     );
   }
+  */
 
+  // This is a basic info row layout, kept for potential future use
+  // Currently using more specialized UI components for info display
+  /*
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -536,7 +1702,11 @@ class _EmotionScreenState extends State<EmotionScreen>
       ),
     );
   }
+  */
 
+  // This method was replaced by the more customizable _buildEnhancedObservationItem
+  // Kept as reference for simpler observation layout
+  /*
   Widget _buildObservationItem({
     required String title,
     required String value,
@@ -578,7 +1748,11 @@ class _EmotionScreenState extends State<EmotionScreen>
       ],
     );
   }
+  */
 
+  // This simplified recommendation item has been replaced by _buildEnhancedRecommendationItem
+  // Keeping for reference in case we need to revert to a simpler design
+  /*
   Widget _buildRecommendationItem(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -592,6 +1766,7 @@ class _EmotionScreenState extends State<EmotionScreen>
       ),
     );
   }
+  */
 
   Color _getEmotionColor(String emotion) {
     switch (emotion.toLowerCase()) {
@@ -687,13 +1862,54 @@ class _EmotionScreenState extends State<EmotionScreen>
     );
   }
 
+  // Method to load Happy Hills reports from shared preferences
+  Future<void> _loadHappyHillsReports() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final reports = prefs.getStringList('happy_hills_reports') ?? [];
+      
+      if (reports.isNotEmpty) {
+        setState(() {
+          // Process and add Happy Hills reports to session reports
+          for (var reportJson in reports) {
+            try {
+              final Map<String, dynamic> data = jsonDecode(reportJson);
+              
+              // Convert timestamp back to DateTime
+              data['date'] = DateTime.fromMillisecondsSinceEpoch(data['date'] as int);
+              
+              // Make emotionMetrics values integers instead of doubles for consistency with mock data
+              final Map<String, dynamic> emotionMetrics = {};
+              (data['emotionMetrics'] as Map<String, dynamic>).forEach((emotion, value) {
+                emotionMetrics[emotion] = (value as double).round();
+              });
+              data['emotionMetrics'] = emotionMetrics;
+              
+              // Add report to the beginning of the list (most recent first)
+              _sessionReports.insert(0, data);
+            } catch (e) {
+              print('Error parsing Happy Hills report: $e');
+            }
+          }
+          
+          // Limit the number of reports if there are too many
+          if (_sessionReports.length > 10) {
+            _sessionReports = _sessionReports.sublist(0, 10);
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading Happy Hills reports: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Calculate the image position to center it horizontally
     imageLeftPosition = (MediaQuery.of(context).size.width - 400) / 2 - 20;
     // Calculate appropriate image sizes based on screen dimensions
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    // We're only using screenHeight for image size calculations
 
     // Change this line to increase the image size
     final imageHeight =
@@ -1073,7 +2289,7 @@ class _EmotionScreenState extends State<EmotionScreen>
   Widget _buildReportsTab() {
     return Column(
       children: [
-        // Professional Search and Filter UI
+        // Professional Search and Filter UI with elevated design
         Container(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           decoration: BoxDecoration(
@@ -1089,50 +2305,102 @@ class _EmotionScreenState extends State<EmotionScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Summary stats
-              Row(
-                children: [
-                  Text(
-                    'Clinical Reports',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey.shade800,
-                    ),
+              // Modern dashboard header with insights
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.green.shade700, Colors.green.shade900],
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with count
+                    Row(
                       children: [
-                        Icon(
-                          Icons.analytics,
-                          size: 14,
-                          color: Colors.green.shade700,
+                        const Icon(
+                          Icons.insights_rounded,
+                          color: Colors.white,
+                          size: 22,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 10),
                         Text(
-                          '${_sessionReports.length} Reports',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.green.shade700,
+                          'Clinical Insights',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.analytics,
+                                size: 14,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${_sessionReports.length} Reports',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+
+                    // Quick stats
+                    Row(
+                      children: [
+                        _buildQuickStat(
+                          "Happy Hills",
+                          "Primary Game",
+                          Icons.videogame_asset_rounded,
+                        ),
+                        _buildQuickStat(
+                          "Happy",
+                          "Most Common Emotion",
+                          Icons.sentiment_very_satisfied_rounded,
+                        ),
+                        _buildQuickStat(
+                          "78%",
+                          "Avg. Engagement",
+                          Icons.show_chart_rounded,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
 
               // Enhanced search with filters
               Row(
@@ -1206,7 +2474,7 @@ class _EmotionScreenState extends State<EmotionScreen>
                 ],
               ),
 
-              // Filter chips (optional - shown when filters are active)
+              // Filter chips with improved design
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: SingleChildScrollView(
@@ -1227,7 +2495,7 @@ class _EmotionScreenState extends State<EmotionScreen>
                       const SizedBox(width: 8),
                       _buildFilterChip(
                         label: 'Happy Hills',
-                        isSelected: false,
+                        isSelected: true,
                         onTap: () {},
                       ),
                     ],
@@ -1238,7 +2506,7 @@ class _EmotionScreenState extends State<EmotionScreen>
           ),
         ),
 
-        // Reports list with enhanced professional styling
+        // Reports list with modern card design
         Expanded(
           child:
               _sessionReports.isEmpty
@@ -1259,20 +2527,43 @@ class _EmotionScreenState extends State<EmotionScreen>
                               ? Colors.green
                               : (score > 60 ? Colors.orange : Colors.red);
 
+                      // Highlight Happy Hills game with special styling
+                      final bool isHappyHills = report['game'] == 'Happy Hills';
+
                       return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                        padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
                         child: Card(
                           margin: EdgeInsets.zero,
-                          elevation: 0,
+                          elevation: isHappyHills ? 2 : 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: Colors.grey.shade200),
+                            side: BorderSide(
+                              color:
+                                  isHappyHills
+                                      ? Colors.amber.shade300
+                                      : Colors.grey.shade200,
+                              width: isHappyHills ? 1.5 : 1,
+                            ),
                           ),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
                             onTap: () => _showReportDetails(report),
-                            child: Padding(
+                            child: Container(
                               padding: const EdgeInsets.all(16),
+                              decoration:
+                                  isHappyHills
+                                      ? BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topRight,
+                                          end: Alignment.bottomLeft,
+                                          colors: [
+                                            Colors.amber.shade50,
+                                            Colors.white,
+                                          ],
+                                        ),
+                                      )
+                                      : null,
                               child: Column(
                                 children: [
                                   // Report header with game and ID
@@ -1280,14 +2571,31 @@ class _EmotionScreenState extends State<EmotionScreen>
                                     children: [
                                       // Game icon with styled container
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
                                           color: _getGameColor(
                                             report['game'],
-                                          ).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                          ).withOpacity(
+                                            isHappyHills ? 0.15 : 0.1,
                                           ),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                          boxShadow:
+                                              isHappyHills
+                                                  ? [
+                                                    BoxShadow(
+                                                      color: Colors.amber
+                                                          .withOpacity(0.2),
+                                                      blurRadius: 8,
+                                                      spreadRadius: 1,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ]
+                                                  : null,
                                         ),
                                         child: Icon(
                                           _getGameIcon(report['game']),
@@ -1302,12 +2610,54 @@ class _EmotionScreenState extends State<EmotionScreen>
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              report['game'] as String,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  report['game'] as String,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color:
+                                                        isHappyHills
+                                                            ? Colors
+                                                                .amber
+                                                                .shade800
+                                                            : Colors
+                                                                .blueGrey
+                                                                .shade800,
+                                                  ),
+                                                ),
+                                                if (isHappyHills) ...[
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.amber.shade100,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      'Latest',
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            Colors
+                                                                .amber
+                                                                .shade900,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
@@ -1325,25 +2675,38 @@ class _EmotionScreenState extends State<EmotionScreen>
                                         crossAxisAlignment:
                                             CrossAxisAlignment.end,
                                         children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.star,
-                                                size: 16,
-                                                color: statusColor,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withOpacity(
+                                                0.15,
                                               ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                '${report['score']}/100',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.star,
+                                                  size: 16,
                                                   color: statusColor,
                                                 ),
-                                              ),
-                                            ],
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${report['score']}/100',
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: statusColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: 6),
                                           Text(
                                             _getScoreLabel(score),
                                             style: TextStyle(
@@ -1357,57 +2720,151 @@ class _EmotionScreenState extends State<EmotionScreen>
                                   ),
 
                                   const SizedBox(height: 16),
-                                  const Divider(height: 1),
+                                  Divider(
+                                    height: 1,
+                                    color:
+                                        isHappyHills
+                                            ? Colors.amber.shade200
+                                            : Colors.grey.shade200,
+                                  ),
                                   const SizedBox(height: 12),
 
-                                  // Report metrics in row
+                                  // Report metrics in row with improved visualization
                                   Row(
                                     children: [
                                       _buildMetricItem(
                                         icon: Icons.date_range,
                                         value: dateFormatted,
                                         label: 'Session Date',
+                                        highlight: isHappyHills,
                                       ),
                                       _buildMetricItem(
                                         icon: Icons.timer,
                                         value: '${report['duration']} min',
                                         label: 'Duration',
+                                        highlight: isHappyHills,
                                       ),
                                       _buildMetricItem(
                                         icon: Icons.emoji_emotions,
-                                        value: _capitalizeFirst(
+                                        value: _getEmotionWithEmoji(
                                           report['dominantEmotion'] as String,
                                         ),
-                                        label: 'Primary Emotion',
+                                        label: 'Emotion',
                                         color: _getEmotionColor(
                                           report['dominantEmotion'] as String,
                                         ),
+                                        highlight: isHappyHills,
                                       ),
                                     ],
                                   ),
 
-                                  const SizedBox(height: 16),
+                                  // Emotional metrics preview for Happy Hills
+                                  if (isHappyHills) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: Colors.grey.shade200,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.pie_chart_rounded,
+                                                size: 14,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Emotion Distribution',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          _buildEmotionPreviewBars(
+                                            report['emotionMetrics'],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
 
-                                  // Action button
+                                  const SizedBox(height: 12),
+
+                                  // Action button with improved styling
                                   Row(
                                     children: [
+                                      if (isHappyHills)
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            // Add sharing functionality
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Sharing report with healthcare team...',
+                                                ),
+                                                duration: Duration(seconds: 2),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(
+                                            Icons.share,
+                                            size: 16,
+                                          ),
+                                          label: const Text('Share'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                Colors.blueGrey.shade600,
+                                          ),
+                                        ),
                                       const Spacer(),
-                                      TextButton(
+                                      ElevatedButton(
                                         onPressed:
                                             () => _showReportDetails(report),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              isHappyHills
+                                                  ? Colors.amber.shade600
+                                                  : Colors.green.shade600,
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
                                         child: Row(
                                           children: [
                                             Text(
-                                              'View Details',
-                                              style: TextStyle(
-                                                color: Colors.blueGrey.shade700,
+                                              'Full Analysis',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14,
                                               ),
                                             ),
                                             const SizedBox(width: 4),
-                                            Icon(
+                                            const Icon(
                                               Icons.arrow_forward,
                                               size: 16,
-                                              color: Colors.blueGrey.shade700,
                                             ),
                                           ],
                                         ),
@@ -1425,6 +2882,126 @@ class _EmotionScreenState extends State<EmotionScreen>
         ),
       ],
     );
+  }
+
+  // Helper widget for emotion preview bars
+  Widget _buildEmotionPreviewBars(Map<String, dynamic> emotionData) {
+    final List<MapEntry<String, dynamic>> sortedEmotions =
+        emotionData.entries.toList()
+          ..sort((a, b) => (b.value as num).compareTo(a.value as num));
+
+    return Row(
+      children:
+          sortedEmotions.take(3).map((entry) {
+            final String emotion = entry.key;
+            final int percentage = entry.value as int;
+
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: _getEmotionColor(emotion),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getEmotionEmoji(emotion),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '$percentage%',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  // Helper widget for quick stats in dashboard header
+  Widget _buildQuickStat(String value, String label, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 14, color: Colors.white.withOpacity(0.9)),
+                const SizedBox(width: 6),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 11,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method for emoji text by emotion name
+  String _getEmotionEmoji(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'happy':
+        return '😃';
+      case 'sad':
+        return '😢';
+      case 'angry':
+        return '😠';
+      case 'surprised':
+        return '😲';
+      case 'neutral':
+        return '😐';
+      case 'fear':
+        return '😨';
+      case 'disgust':
+        return '🤢';
+      default:
+        return '🙂';
+    }
+  }
+
+  // Helper to get emotion name with emoji
+  String _getEmotionWithEmoji(String emotion) {
+    final emoji = _getEmotionEmoji(emotion);
+    return "$emoji ${_capitalizeFirst(emotion)}";
   }
 
   // Helper method to get score labels
@@ -1658,6 +3235,7 @@ class _EmotionScreenState extends State<EmotionScreen>
     required String value,
     required String label,
     Color? color,
+    bool highlight = false,
   }) {
     return Expanded(
       child: Column(
@@ -2025,6 +3603,9 @@ class _EmotionScreenState extends State<EmotionScreen>
     );
   }
 
+  // This method is kept for future use when implementing report status chips
+  // Currently using _buildFilterChip for similar functionality
+  /*
   Widget _buildReportChip(String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -2045,6 +3626,7 @@ class _EmotionScreenState extends State<EmotionScreen>
       ),
     );
   }
+  */
 
   IconData _getGameIcon(String gameName) {
     switch (gameName) {

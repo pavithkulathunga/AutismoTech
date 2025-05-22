@@ -1,11 +1,20 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:confetti/confetti.dart';
 import 'package:camera/camera.dart';
+import 'package:confetti/confetti.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
+
+// Helper extension
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return "${this[0].toUpperCase()}${substring(1)}";
+  }
+}
 
 class HappyScreen extends StatefulWidget {
   const HappyScreen({super.key});
@@ -339,6 +348,14 @@ class _HappyScreenState extends State<HappyScreen>
         "The child maintained a positive emotional state for a significant portion of the game.",
       );
     }
+    
+    // Save session data for professional reports
+    _saveSessionData(
+      dominantEmotion: dominantEmotion,
+      emotionPercentages: emotionPercentages,
+      sessionDuration: sessionDurationSeconds,
+      observations: observations,
+    );
 
     // Fix: Check if angry exists before accessing it
     final bool showedFrustration =
@@ -352,6 +369,14 @@ class _HappyScreenState extends State<HappyScreen>
     // Add score observation
     observations.add(
       "Final game score was $score points, showing good engagement with the activity.",
+    );
+
+    // Save session data for professional reports
+    _saveSessionData(
+      dominantEmotion: dominantEmotion,
+      emotionPercentages: emotionPercentages,
+      sessionDuration: sessionDurationSeconds,
+      observations: observations,
     );
 
     return Container(
@@ -1084,11 +1109,47 @@ class _HappyScreenState extends State<HappyScreen>
         ? DateTime.now().difference(_sessionStartTime!).inSeconds
         : 0;
   }
-}
-
-// Helper extension
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
+  
+  // Save session data for professional reports
+  Future<void> _saveSessionData({
+    required String dominantEmotion,
+    required Map<String, double> emotionPercentages,
+    required int sessionDuration,
+    required List<String> observations,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Create report data
+      final Map<String, dynamic> reportData = {
+        'id': 'AUX-${Random().nextInt(9000) + 1000}',
+        'date': DateTime.now().millisecondsSinceEpoch,
+        'game': 'Happy Hills',
+        'duration': sessionDuration / 60, // Convert to minutes
+        'dominantEmotion': dominantEmotion,
+        'emotionMetrics': emotionPercentages,
+        'notes': observations.join(" "),
+        'score': score,
+        'emotionTimeline': _emotionTimeline,
+      };
+      
+      // Get existing reports or create empty list
+      List<String> reports = prefs.getStringList('happy_hills_reports') ?? [];
+      
+      // Add new report
+      reports.add(jsonEncode(reportData));
+      
+      // Store limited number of reports (keep last 10)
+      if (reports.length > 10) {
+        reports = reports.sublist(reports.length - 10);
+      }
+      
+      // Save to shared preferences
+      await prefs.setStringList('happy_hills_reports', reports);
+      
+      print('Happy Hills session data saved for professional reports');
+    } catch (e) {
+      print('Error saving Happy Hills session data: $e');
+    }
   }
 }
