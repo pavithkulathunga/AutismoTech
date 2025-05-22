@@ -42,6 +42,9 @@ dependencies:
   url_launcher: ^6.3.1
   # spotify_sdk: ^2.3.0  # Temporarily removed due to Gradle build failure related to missing ':spotify-app-remote' module. Consider resolving the missing module or checking for updates to spotify_sdk before re-enabling.
   audioplayers: ^5.2.1
+  audioplayers_windows: ^3.1.0
+  video_player: ^2.7.2
+  lottie: ^3.0.0
 
 flutter_launcher_icons:
   android: true
@@ -70,12 +73,14 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - assets/icons/
     - assets/music/
+    - assets/videos/
+    - assets/audio/
+    - assets/animations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
