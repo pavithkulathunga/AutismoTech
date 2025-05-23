@@ -47,6 +47,15 @@ dependencies:
   lottie: ^3.0.0
   intl: ^0.20.2
   shared_preferences: ^2.5.3
+  share_plus: ^7.2.1
+  pdf: ^3.10.4
+  path_provider: ^2.1.1
+  # Remove open_file_plus completely as it's causing compilation issues
+  # open_file_plus: ^3.4.1+1
+  # Use only this modern alternative that works with newer Flutter versions
+  open_filex: ^4.3.4
+  flutter_svg: ^2.0.7  # For handling vector graphics in PDFs
+  printing: ^5.11.0     # For print preview and direct printing
 
 flutter_launcher_icons:
   android: true

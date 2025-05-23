@@ -3,10 +3,19 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:confetti/confetti.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:printing/printing.dart';
+import 'package:autismotech_app/screens/pdf_preview_screen.dart';
 
 // Helper extension
 extension StringExtension on String {
@@ -620,18 +629,100 @@ class _HappyScreenState extends State<HappyScreen>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // This would share the report in a real app
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Report sharing would be implemented here',
-                        ),
-                      ),
+                  onPressed: () async {
+                    // Show loading indicator
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 20),
+                                Text('Generating PDF Report...'),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
+
+                    // Generate PDF
+                    try {
+                      final pdfFile = await _generatePDF(
+                        dateFormatted: dateFormatted,
+                        startTimeFormatted: startTimeFormatted,
+                        sessionDurationSeconds: sessionDurationSeconds,
+                        dominantEmotion: dominantEmotion,
+                        emotionPercentages: emotionPercentages,
+                        observations: observations,
+                      );
+
+                      // Close loading dialog
+                      Navigator.pop(context);
+
+                      if (pdfFile != null) {
+                        // Show options dialog
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('PDF Report Ready'),
+                              content: const Text(
+                                'What would you like to do with the report?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context); // Close dialog
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => PdfPreviewScreen(
+                                              pdfFile: pdfFile,
+                                              dateFormatted: dateFormatted,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Preview'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context); // Close dialog
+                                    final result = await Share.shareXFiles(
+                                      [XFile(pdfFile.path)],
+                                      subject:
+                                          'Happy Hills Emotion Report - $dateFormatted',
+                                      text:
+                                          'Here is the emotion report from the Happy Hills game session.',
+                                    );
+                                    print('Share result: ${result.status}');
+                                  },
+                                  child: const Text('Share Now'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    } catch (e) {
+                      // Close loading dialog
+                      Navigator.pop(context);
+
+                      print('Error generating PDF: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to generate PDF: $e')),
+                      );
+                    }
                   },
-                  icon: const Icon(Icons.share),
-                  label: const Text('Share Report'),
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('PDF Report'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -1202,6 +1293,386 @@ class _HappyScreenState extends State<HappyScreen>
       print('Happy Hills session data saved for professional reports');
     } catch (e) {
       print('Error saving Happy Hills session data: $e');
+    }
+  }
+
+  // Generate PDF document
+  Future<File?> _generatePDF({
+    required String dateFormatted,
+    required String startTimeFormatted,
+    required int sessionDurationSeconds,
+    required String dominantEmotion,
+    required Map<String, double> emotionPercentages,
+    required List<String> observations,
+  }) async {
+    // Create PDF document
+    final pdf = pw.Document();
+
+    // Load fonts for better styling
+    final regularFont = await PdfGoogleFonts.nunitoRegular();
+    final boldFont = await PdfGoogleFonts.nunitoBold();
+    final titleFont = await PdfGoogleFonts.robotoCondensedRegular();
+
+    // Add pages to the PDF
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        header: (pw.Context context) {
+          return pw.Header(
+            level: 0,
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'AutismoTech: Happy Hills Report',
+                  style: pw.TextStyle(
+                    font: titleFont,
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue800,
+                  ),
+                ),
+                pw.Text(
+                  dateFormatted,
+                  style: pw.TextStyle(
+                    font: regularFont,
+                    fontSize: 14,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        footer: (pw.Context context) {
+          return pw.Footer(
+            margin: const pw.EdgeInsets.only(top: 10),
+            trailing: pw.Text(
+              'Page ${context.pageNumber} of ${context.pagesCount}',
+              style: pw.TextStyle(
+                font: regularFont,
+                fontSize: 12,
+                fontStyle: pw.FontStyle.italic,
+                color: PdfColors.grey700,
+              ),
+            ),
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            // Title and session info
+            pw.Container(
+              padding: const pw.EdgeInsets.all(16),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.blue50,
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    '📄 Emotion Summary Report',
+                    style: pw.TextStyle(
+                      font: titleFont,
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.blue800,
+                    ),
+                  ),
+                  pw.SizedBox(height: 16),
+                  _buildPdfInfoRow(
+                    'Date',
+                    dateFormatted,
+                    regularFont,
+                    boldFont,
+                  ),
+                  _buildPdfInfoRow(
+                    'Session Start Time',
+                    startTimeFormatted,
+                    regularFont,
+                    boldFont,
+                  ),
+                  _buildPdfInfoRow(
+                    'Session Duration',
+                    '${sessionDurationSeconds ~/ 60} minutes',
+                    regularFont,
+                    boldFont,
+                  ),
+                  _buildPdfInfoRow(
+                    'Game Played',
+                    'Happy Hills - Color Match',
+                    regularFont,
+                    boldFont,
+                  ),
+                  _buildPdfInfoRow(
+                    'Final Score',
+                    score.toString(),
+                    regularFont,
+                    boldFont,
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 20),
+
+            // Emotion Distribution Section
+            pw.Header(
+              level: 1,
+              text: '🎯 Emotion Distribution',
+              textStyle: pw.TextStyle(
+                font: titleFont,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue800,
+              ),
+            ),
+            pw.SizedBox(height: 10),
+
+            // Create table for emotion distribution
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 1),
+              children: [
+                // Table header
+                pw.TableRow(
+                  decoration: pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    _buildPdfTableCell('Emotion', regularFont, isHeader: true),
+                    _buildPdfTableCell('Duration', regularFont, isHeader: true),
+                    _buildPdfTableCell(
+                      'Percentage',
+                      regularFont,
+                      isHeader: true,
+                    ),
+                  ],
+                ),
+                // Table rows
+                ...emotionPercentages.entries
+                    .where((entry) => entry.value > 0)
+                    .map(
+                      (entry) => pw.TableRow(
+                        children: [
+                          _buildPdfTableCell(
+                            '${entry.key.capitalize()}',
+                            regularFont,
+                          ),
+                          _buildPdfTableCell(
+                            '${(entry.value * sessionDurationSeconds / 100).round()} s',
+                            regularFont,
+                          ),
+                          _buildPdfTableCell(
+                            '${entry.value.toStringAsFixed(1)}%',
+                            regularFont,
+                          ),
+                        ],
+                      ),
+                    )
+                    .toList(),
+              ],
+            ),
+            pw.SizedBox(height: 10),
+            _buildPdfInfoRow(
+              'Most dominant emotion',
+              dominantEmotion.capitalize(),
+              regularFont,
+              boldFont,
+            ),
+            pw.SizedBox(height: 20),
+
+            // AI Observations Section
+            pw.Header(
+              level: 1,
+              text: '🧠 AI Observations',
+              textStyle: pw.TextStyle(
+                font: titleFont,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue800,
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            ...observations
+                .map(
+                  (obs) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 8),
+                    child: pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          '• ',
+                          style: pw.TextStyle(font: boldFont, fontSize: 14),
+                        ),
+                        pw.Expanded(
+                          child: pw.Text(
+                            obs,
+                            style: pw.TextStyle(
+                              font: regularFont,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+            pw.SizedBox(height: 20),
+
+            // Next Steps Section
+            pw.Header(
+              level: 1,
+              text: '📬 Next Steps',
+              textStyle: pw.TextStyle(
+                font: titleFont,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue800,
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            ...[
+                  'Share this report with a therapist or educator.',
+                  'Use emotion pattern insights to guide future sessions.',
+                  'Encourage use of reward-based tasks to sustain engagement.',
+                ]
+                .map(
+                  (step) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 8),
+                    child: pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          '• ',
+                          style: pw.TextStyle(font: boldFont, fontSize: 14),
+                        ),
+                        pw.Expanded(
+                          child: pw.Text(
+                            step,
+                            style: pw.TextStyle(
+                              font: regularFont,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+            pw.SizedBox(height: 30),
+
+            // Footer info
+            pw.Container(
+              alignment: pw.Alignment.center,
+              padding: const pw.EdgeInsets.all(16),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Column(
+                children: [
+                  pw.Text(
+                    'Generated by AutismoTech Mobile App',
+                    style: pw.TextStyle(
+                      font: boldFont,
+                      fontSize: 14,
+                      color: PdfColors.blue800,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    'Session ID: #AUX-${Random().nextInt(9000) + 1000}',
+                    style: pw.TextStyle(font: regularFont, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ];
+        },
+      ),
+    );
+
+    // Save the PDF
+    try {
+      final output = await getTemporaryDirectory();
+      final file = File(
+        '${output.path}/happy_hills_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+      await file.writeAsBytes(await pdf.save());
+      return file;
+    } catch (e) {
+      print('Error saving PDF: $e');
+      return null;
+    }
+  }
+
+  // Helper method for PDF info rows
+  pw.Widget _buildPdfInfoRow(
+    String label,
+    String value,
+    pw.Font regularFont,
+    pw.Font boldFont,
+  ) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.SizedBox(
+            width: 150,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(font: boldFont, fontSize: 14),
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(
+              value,
+              style: pw.TextStyle(font: regularFont, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method for PDF table cells
+  pw.Widget _buildPdfTableCell(
+    String text,
+    pw.Font font, {
+    bool isHeader = false,
+  }) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(8),
+      child: pw.Text(
+        text,
+        textAlign: pw.TextAlign.center,
+        style: pw.TextStyle(
+          font: font,
+          fontSize: 12,
+          fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  // If you need to modify the PDF opening functionality, update this method:
+  Future<void> _openPdfFile(File file) async {
+    try {
+      final result = await OpenFilex.open(file.path);
+
+      if (result.type != ResultType.done) {
+        // If opening fails, fallback to sharing
+        await Share.shareXFiles([
+          XFile(file.path),
+        ], subject: 'Happy Hills Emotion Report');
+      }
+    } catch (e) {
+      print('Error opening PDF file: $e');
+      // Fallback to sharing if opening fails with exception
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], subject: 'Happy Hills Emotion Report');
     }
   }
 }
