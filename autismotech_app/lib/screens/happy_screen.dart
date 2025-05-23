@@ -87,17 +87,44 @@ class _HappyScreenState extends State<HappyScreen>
   Future<void> _initCamera() async {
     try {
       final cameras = await availableCameras();
-      if (cameras.isNotEmpty) {
-        _cameraController = CameraController(
-          cameras.first,
-          ResolutionPreset.low,
-          enableAudio: false,
-        );
-        await _cameraController!.initialize();
-        _startEmotionDetection();
+      if (cameras.isEmpty) {
+        print('No cameras available on this device');
+        setState(() {
+          _emotion = 'No camera detected';
+        });
+        return;
       }
+
+      // Find the front-facing camera
+      CameraDescription? frontCamera;
+      for (var camera in cameras) {
+        if (camera.lensDirection == CameraLensDirection.front) {
+          frontCamera = camera;
+          break;
+        }
+      }
+
+      if (frontCamera == null) {
+        print('No front camera available');
+        setState(() {
+          _emotion = 'No front camera detected';
+        });
+        return;
+      }
+
+      _cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.low,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      _startEmotionDetection();
     } catch (e) {
       print('Camera initialization error: $e');
+      setState(() {
+        _emotion = 'Camera error: Cannot detect face';
+      });
     }
   }
 
@@ -119,7 +146,7 @@ class _HappyScreenState extends State<HappyScreen>
 
       // Using 10.0.2.2 which maps to the host machine's localhost when running in an Android emulator
       // For physical devices, use your actual server IP address
-      final String apiUrl = '10.0.2.2:8080'; // For Android emulator
+      final String apiUrl = '172.20.10.9:5001'; // For Android emulator
 
       final response = await http
           .post(
