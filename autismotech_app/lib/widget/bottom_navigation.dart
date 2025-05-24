@@ -245,9 +245,9 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget>
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withOpacity(0.25),
-          Colors.white.withOpacity(0.15),
-          Colors.white.withOpacity(0.1),
+          AppColors.background.withOpacity(0.9),
+          AppColors.backgroundAccent.withOpacity(0.8),
+          AppColors.primaryColor.withOpacity(0.7),
         ],
         stops: const [0.0, 0.5, 1.0],
       ),
