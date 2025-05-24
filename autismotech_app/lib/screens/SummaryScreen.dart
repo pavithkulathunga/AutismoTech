@@ -137,10 +137,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         },
         items:
             <String>[
-              'Past Week',
-              '1 Month',
-              '3 Months',
-              '1 Year',
+             
             ].map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -213,7 +210,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Overall Prediction',
+              'Progress of behaviour',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -233,7 +230,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         const SizedBox(height: 16),
         // Display CNN Progress with a progress bar.
         const Text(
-          'CNN Progress',
+          'Progress of an Activity',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,

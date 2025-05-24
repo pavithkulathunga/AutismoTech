@@ -19,22 +19,20 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     'assets/images/home.png',
     'assets/images/questions.png',
     'assets/images/summary.png',
-    'assets/images/setting.png',
   ];
 
   final List<String> _selectedIcons = [
     'assets/images/homeafterclick.png',
     'assets/images/questionsafterclick.png',
     'assets/images/summaryafterclick.png',
-    'assets/images/settingafterclick.png',
   ];
 
-  final List<String> _labels = ['Home', 'Questions', 'Summary', 'Settings'];
+  final List<String> _labels = ['Home', 'Questions', 'Summary'];
 
   final List<Widget> _screens = [
     ProgressSummaryScreen(), // Home screen
-    QuestionsScreen(), // Questions screen
-    SummaryScreen(), // Summary screen
+    QuestionsScreen(),       // Questions screen
+    SummaryScreen(),         // Summary screen
   ];
 
   void _onItemTapped(int index) {
@@ -43,12 +41,10 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         _selectedIndex = index;
       });
 
-      if (index < _screens.length) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => _screens[index]),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => _screens[index]),
+      );
     }
   }
 
@@ -61,37 +57,33 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       ),
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       child: BottomNavigationBar(
-        items: List.generate(4, (index) {
+        items: List.generate(_icons.length, (index) {
+          final isSelected = _selectedIndex == index;
           return BottomNavigationBarItem(
             icon: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: _selectedIndex == index ? 54 : 42,
-                  height: _selectedIndex == index ? 42 : 34,
+                  width: isSelected ? 54 : 42,
+                  height: isSelected ? 42 : 34,
                   decoration: BoxDecoration(
-                    color:
-                        _selectedIndex == index
-                            ? const Color(0xFF03045E)
-                            : Colors.transparent,
+                    color: isSelected ? const Color(0xFF03045E) : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   padding: const EdgeInsets.all(4),
                   child: Image.asset(
-                    _selectedIndex == index
-                        ? _selectedIcons[index]
-                        : _icons[index],
+                    isSelected ? _selectedIcons[index] : _icons[index],
                     width: 20,
                     height: 20,
                   ),
                 ),
-                const SizedBox(height: 4), // Space between icon and text
+                const SizedBox(height: 4),
                 Text(
                   _labels[index],
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: _selectedIndex == index ? Colors.black : Colors.grey,
+                    color: isSelected ? Colors.black : Colors.grey,
                   ),
                 ),
               ],

@@ -196,11 +196,11 @@ class _SecondUploadScreenState extends State<SecondUploadScreen> {
               value: _selectedAge,
               items:
                   [
-                    "24 months",
-                    "36 months",
-                    "48 months",
-                    "60 months",
-                    "72 months",
+                    "2 years",
+                    "3 years",
+                    "4 years",
+                    "5 years",
+                    "6 years",
                   ].map((age) {
                     return DropdownMenuItem(
                       value: age,
@@ -236,7 +236,7 @@ class _SecondUploadScreenState extends State<SecondUploadScreen> {
               ),
               value: _selectedGender,
               items:
-                  ["Male", "Female", "Other"].map((gender) {
+                  ["Male", "Female"].map((gender) {
                     return DropdownMenuItem(
                       value: gender,
                       child: Text(
