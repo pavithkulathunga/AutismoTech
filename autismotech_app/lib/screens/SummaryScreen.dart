@@ -4,6 +4,7 @@ import 'package:autismotech_app/constants/colors.dart';
 import 'package:autismotech_app/screens/apiservice.dart';
 import 'package:autismotech_app/screens/global.dart' as globals;
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 class SummaryScreen extends StatefulWidget {
   const SummaryScreen({Key? key}) : super(key: key);
@@ -24,11 +25,23 @@ class _SummaryScreenState extends State<SummaryScreen>
   late AnimationController _cardController;
   late AnimationController _pulseController;
   
+  // Add new controllers for background animations
+  late AnimationController _backgroundController;
+  late AnimationController _particleController;
+  late AnimationController _glowController;
+  
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _progressAnimation;
   late Animation<double> _cardScaleAnimation;
   late Animation<double> _pulseAnimation;
+  
+  // Background animation variables
+  late Animation<Color?> _gradientAnimation1;
+  late Animation<Color?> _gradientAnimation2;
+  late Animation<Color?> _gradientAnimation3;
+  late Animation<double> _particleAnimation;
+  late Animation<double> _glowAnimation;
 
   @override
   void initState() {
@@ -38,6 +51,7 @@ class _SummaryScreenState extends State<SummaryScreen>
   }
 
   void _initializeAnimations() {
+    // Existing animations
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -59,6 +73,23 @@ class _SummaryScreenState extends State<SummaryScreen>
       vsync: this,
     );
 
+    // Add new background animation controllers
+    _backgroundController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat();
+
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 12),
+      vsync: this,
+    )..repeat();
+
+    _glowController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    // Existing animations
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
     );
@@ -76,6 +107,47 @@ class _SummaryScreenState extends State<SummaryScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
+    // New background animations
+    _gradientAnimation1 = ColorTween(
+      begin: const Color(0xFF6448FE),
+      end: const Color(0xFF5FC3E4),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+
+    _gradientAnimation2 = ColorTween(
+      begin: const Color(0xFFE0C3FC),
+      end: const Color(0xFF8EC5FC),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+
+    _gradientAnimation3 = ColorTween(
+      begin: const Color(0xFF6BAAFF),
+      end: const Color(0xFFB06AB3),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+
+    _particleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _particleController,
+      curve: Curves.linear,
+    ));
+
+    _glowAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _glowController,
+      curve: Curves.easeInOut,
+    ));
+
     _pulseController.repeat(reverse: true);
   }
 
@@ -86,6 +158,9 @@ class _SummaryScreenState extends State<SummaryScreen>
     _progressController.dispose();
     _cardController.dispose();
     _pulseController.dispose();
+    _backgroundController.dispose();
+    _particleController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -183,26 +258,77 @@ class _SummaryScreenState extends State<SummaryScreen>
         return false;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Colors.white, // Make scaffold background transparent
+        extendBodyBehindAppBar: true, // Let content flow behind the AppBar
         appBar: _buildAppBar(),
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(isTablet),
-                    const SizedBox(height: 24),
-                    _buildSummaryCard(isTablet),
-                    const SizedBox(height: 24),
-                    _buildInsightsSection(isTablet),
-                    const SizedBox(height: 100),
-                  ],
+        body: AnimatedBuilder(
+          animation: Listenable.merge([
+            _backgroundController,
+            _particleAnimation,
+            _glowAnimation,
+          ]),
+          builder: (context, child) {
+            return Stack(
+              children: [
+                // Beautiful animated background
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color.lerp(_gradientAnimation1.value, _gradientAnimation3.value, 
+                          0.6 + 0.3 * math.sin(_backgroundController.value * 2 * math.pi))!,
+                        Color.lerp(_gradientAnimation2.value, _gradientAnimation1.value,
+                          0.7 + 0.2 * math.cos(_backgroundController.value * 3 * math.pi))!,
+                        Color.lerp(_gradientAnimation3.value, _gradientAnimation2.value,
+                          0.5 + 0.4 * math.sin(_backgroundController.value * 1.5 * math.pi))!,
+                      ],
+                      stops: const [0.0, 0.6, 1.0],
+                    ),
+                  ),
+                ),
+                
+                // Floating particles
+                _buildFloatingParticles(),
+                
+                // Content with overlay to ensure readability
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withOpacity(0.6),
+                        Colors.white.withOpacity(0.85),
+                      ],
+                    ),
+                  ),
+                  child: child,
+                ),
+              ],
+            );
+          },
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: AppBar().preferredSize.height + MediaQuery.of(context).padding.top),
+                      _buildHeader(isTablet),
+                      const SizedBox(height: 24),
+                      _buildSummaryCard(isTablet),
+                      const SizedBox(height: 24),
+                      _buildInsightsSection(isTablet),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -213,31 +339,87 @@ class _SummaryScreenState extends State<SummaryScreen>
     );
   }
 
+  Widget _buildFloatingParticles() {
+    return Stack(
+      children: List.generate(15, (index) {
+        final delay = index * 0.1;
+        final animationValue = (_particleAnimation.value + delay) % 1.0;
+        final size = MediaQuery.of(context).size;
+        
+        return Positioned(
+          left: (index * 0.13 * size.width + animationValue * 100) % size.width,
+          top: (index * 0.17 * size.height + animationValue * 200) % size.height,
+          child: Container(
+            width: 4 + (index % 3) * 2,
+            height: 4 + (index % 3) * 2,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withOpacity(0.9),
+                  Colors.white.withOpacity(0.0),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.6),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text(
-        'Progress Summary',
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 22,
-          color: Colors.white,
-        ),
+      title: AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.3),
+                  Colors.white.withOpacity(0.15),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.4),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(_glowAnimation.value * 0.3),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Text(
+              '✨ Progress Summary',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    color: Colors.black45,
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color.fromARGB(0, 255, 0, 0),
       elevation: 0,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryColor,
-              AppColors.primaryColor.withOpacity(0.9),
-              const Color(0xFF667EEA),
-            ],
-          ),
-        ),
-      ),
       iconTheme: const IconThemeData(color: Colors.white),
       centerTitle: true,
       actions: [
@@ -253,10 +435,14 @@ class _SummaryScreenState extends State<SummaryScreen>
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 1,
+                      ),
                     ),
-                    child: const Icon(Icons.refresh_rounded, size: 20),
+                    child: const Icon(Icons.refresh_rounded, size: 20, color: Colors.white),
                   ),
                 );
               },
@@ -412,28 +598,22 @@ class _SummaryScreenState extends State<SummaryScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white,
-              const Color(0xFFFAFBFC),
+              Colors.white.withOpacity(0.9),
+              Colors.white.withOpacity(0.7),
             ],
           ),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 30,
               spreadRadius: 0,
               offset: const Offset(0, 12),
             ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              spreadRadius: 0,
-              offset: const Offset(0, 4),
-            ),
           ],
           border: Border.all(
-            color: AppColors.primaryColor.withOpacity(0.1),
-            width: 1,
+            color: Colors.white.withOpacity(0.6),
+            width: 1.5,
           ),
         ),
         child: overallResponse == null ? _buildLoadingContent(isTablet) : _buildContent(isTablet),

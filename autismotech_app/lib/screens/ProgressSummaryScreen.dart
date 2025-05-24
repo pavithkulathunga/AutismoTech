@@ -126,6 +126,7 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
     final horizontalPadding = isTablet ? screenWidth * 0.08 : screenWidth * 0.05;
 
     return Scaffold(
+      backgroundColor: Colors.white, // Set to transparent to show the gradient
       extendBodyBehindAppBar: true,
       appBar: _buildGlassAppBar(isTablet),
       body: Container(
