@@ -23,80 +23,154 @@ class _UploadScreenState extends State<UploadScreen>
   String? _selectedAge;
   String? _selectedGender;
   bool _isPickingImage = false;
+  bool _isUploading = false;
 
-  // Animation controllers
+  // Advanced Animation Controllers
   late AnimationController _backgroundController;
-  late AnimationController _floatingController;
-  late AnimationController _pulseController;
-  late AnimationController _scaleController;
+  late AnimationController _heroController;
+  late AnimationController _cardController;
+  late AnimationController _buttonController;
+  late AnimationController _particleController;
+  late AnimationController _glowController;
 
-  // Animations
-  late Animation<double> _floatingAnimation;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _scaleAnimation;
+  // Complex Animations
+  late Animation<double> _heroAnimation;
+  late Animation<double> _cardFloatAnimation;
+  late Animation<double> _buttonScaleAnimation;
+  late Animation<double> _particleAnimation;
+  late Animation<double> _glowAnimation;
+  late Animation<Color?> _gradientAnimation1;
+  late Animation<Color?> _gradientAnimation2;
+  late Animation<Color?> _gradientAnimation3;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
+    _initializeAdvancedAnimations();
+    _startAnimationSequence();
   }
 
-  void _initializeAnimations() {
+  void _initializeAdvancedAnimations() {
     // Background gradient animation
     _backgroundController = AnimationController(
+      duration: const Duration(seconds: 6),
+      vsync: this,
+    )..repeat();
+
+    // Hero entrance animation
+    _heroController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Card floating animation
+    _cardController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    // Button interaction animation
+    _buttonController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    // Particle animation
+    _particleController = AnimationController(
       duration: const Duration(seconds: 8),
       vsync: this,
     )..repeat();
 
-    // Floating animation for cards
-    _floatingController = AnimationController(
+    // Glow animation
+    _glowController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
 
-    // Pulse animation for interactive elements
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    // Scale animation for buttons
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-
-    _floatingAnimation = Tween<double>(
+    // Hero animation with elastic curve
+    _heroAnimation = Tween<double>(
       begin: 0.0,
-      end: 8.0,
+      end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _floatingController,
+      parent: _heroController,
+      curve: Curves.elasticOut,
+    ));
+
+    // Card floating animation
+    _cardFloatAnimation = Tween<double>(
+      begin: -10.0,
+      end: 10.0,
+    ).animate(CurvedAnimation(
+      parent: _cardController,
       curve: Curves.easeInOut,
     ));
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-
-    _scaleAnimation = Tween<double>(
+    // Button scale animation
+    _buttonScaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
     ).animate(CurvedAnimation(
-      parent: _scaleController,
+      parent: _buttonController,
       curve: Curves.easeInOut,
     ));
+
+    // Particle animation
+    _particleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _particleController,
+      curve: Curves.linear,
+    ));
+
+    // Glow animation
+    _glowAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _glowController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Dynamic gradient colors
+    _gradientAnimation1 = ColorTween(
+      begin: const Color(0xFF667eea),
+      end: const Color(0xFF764ba2),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+
+    _gradientAnimation2 = ColorTween(
+      begin: const Color(0xFFf093fb),
+      end: const Color(0xFFf5576c),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+
+    _gradientAnimation3 = ColorTween(
+      begin: const Color(0xFF4facfe),
+      end: const Color(0xFF00f2fe),
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  void _startAnimationSequence() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    _heroController.forward();
   }
 
   @override
   void dispose() {
     _backgroundController.dispose();
-    _floatingController.dispose();
-    _pulseController.dispose();
-    _scaleController.dispose();
+    _heroController.dispose();
+    _cardController.dispose();
+    _buttonController.dispose();
+    _particleController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -280,36 +354,21 @@ class _UploadScreenState extends State<UploadScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
-    final horizontalPadding = isSmallScreen ? 16.0 : size.width * 0.1;
+    final isTablet = size.width > 768;
+    final isMobile = size.width < 600;
+    final horizontalPadding = isTablet ? size.width * 0.15 : (isMobile ? 16.0 : 24.0);
     
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          "Behavioral Progress Prediction",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: isSmallScreen ? 18 : 22,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.arrow_back, color: Colors.white),
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: _buildMagicalAppBar(isMobile),
       body: AnimatedBuilder(
-        animation: _backgroundController,
+        animation: Listenable.merge([
+          _backgroundController,
+          _heroAnimation,
+          _cardFloatAnimation,
+          _particleAnimation,
+          _glowAnimation,
+        ]),
         builder: (context, child) {
           return Container(
             decoration: BoxDecoration(
@@ -317,46 +376,58 @@ class _UploadScreenState extends State<UploadScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color.lerp(
-                    AppColors.primaryColor,
-                    AppColors.accent1,
-                    0.3 + 0.2 * math.sin(_backgroundController.value * 2 * math.pi),
-                  )!,
-                  Color.lerp(
-                    AppColors.background,
-                    AppColors.Progress,
-                    0.5 + 0.3 * math.cos(_backgroundController.value * 2 * math.pi),
-                  )!,
-                  Color.lerp(
-                    AppColors.Emotion,
-                    AppColors.Music,
-                    0.4 + 0.2 * math.sin(_backgroundController.value * 3 * math.pi),
-                  )!,
+                  Color.lerp(_gradientAnimation1.value, _gradientAnimation3.value, 
+                    0.5 + 0.3 * math.sin(_backgroundController.value * 2 * math.pi))!,
+                  Color.lerp(_gradientAnimation2.value, _gradientAnimation1.value,
+                    0.7 + 0.2 * math.cos(_backgroundController.value * 3 * math.pi))!,
+                  Color.lerp(_gradientAnimation3.value, _gradientAnimation2.value,
+                    0.4 + 0.4 * math.sin(_backgroundController.value * 1.5 * math.pi))!,
+                  const Color(0xFF1a1a2e),
                 ],
+                stops: const [0.0, 0.4, 0.8, 1.0],
               ),
             ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
-                padding: EdgeInsets.symmetric(
-                  horizontal: horizontalPadding,
-                  vertical: 20,
+            child: Stack(
+              children: [
+                // Animated particles background
+                _buildParticleBackground(),
+                // Main content
+                SafeArea(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: 20,
+                    ),
+                    child: FadeTransition(
+                      opacity: _heroAnimation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.3),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: _heroController,
+                          curve: Curves.easeOutCubic,
+                        )),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 20),
+                            _buildGlowingHeader(isMobile, isTablet),
+                            const SizedBox(height: 40),
+                            _buildMagicalImagePicker(isMobile, isTablet),
+                            const SizedBox(height: 32),
+                            _buildEnchantedFormSection(isMobile, isTablet),
+                            const SizedBox(height: 40),
+                            _buildSpectacularButton(isMobile, isTablet),
+                            const SizedBox(height: 30),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: 20),
-                    _buildHeaderSection(isSmallScreen),
-                    SizedBox(height: 30),
-                    _buildImagePickerCard(isSmallScreen),
-                    SizedBox(height: 24),
-                    _buildFormSection(isSmallScreen),
-                    SizedBox(height: 32),
-                    _buildNextButton(isSmallScreen),
-                    SizedBox(height: 20),
-                  ],
-                ),
-              ),
+              ],
             ),
           );
         },
@@ -364,17 +435,141 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
-  Widget _buildHeaderSection(bool isSmallScreen) {
+  PreferredSizeWidget _buildMagicalAppBar(bool isMobile) {
+    return AppBar(
+      title: AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.1),
+                  Colors.white.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(_glowAnimation.value * 0.3),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Text(
+              "✨ Autism Progress Prediction",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: isMobile ? 16 : 20,
+                letterSpacing: 0.5,
+                shadows: [
+                  Shadow(
+                    color: Colors.white.withOpacity(0.5),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0x40ffffff), Color(0x20ffffff)],
+            ),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      centerTitle: true,
+    );
+  }
+
+  Widget _buildParticleBackground() {
     return AnimatedBuilder(
-      animation: _floatingAnimation,
+      animation: _particleAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: List.generate(15, (index) {
+            final delay = index * 0.1;
+            final animationValue = (_particleAnimation.value + delay) % 1.0;
+            final size = MediaQuery.of(context).size;
+            
+            return Positioned(
+              left: (index * 0.1 * size.width + animationValue * 100) % size.width,
+              top: (index * 0.15 * size.height + animationValue * 200) % size.height,
+              child: Container(
+                width: 4 + (index % 3) * 2,
+                height: 4 + (index % 3) * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.8),
+                      Colors.white.withOpacity(0.0),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.5),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlowingHeader(bool isMobile, bool isTablet) {
+    return AnimatedBuilder(
+      animation: _cardFloatAnimation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, _floatingAnimation.value),
+          offset: Offset(0, _cardFloatAnimation.value),
           child: Container(
-            padding: EdgeInsets.all(isSmallScreen ? 20 : 24),
+            padding: EdgeInsets.all(isTablet ? 32 : (isMobile ? 24 : 28)),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.25),
+                  Colors.white.withOpacity(0.1),
+                  Colors.white.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(32),
               border: Border.all(
                 color: Colors.white.withOpacity(0.3),
                 width: 1.5,
@@ -382,26 +577,66 @@ class _UploadScreenState extends State<UploadScreen>
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
+                  blurRadius: 30,
                   spreadRadius: 5,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(_glowAnimation.value * 0.2),
+                  blurRadius: 40,
+                  spreadRadius: 10,
                 ),
               ],
             ),
             child: Column(
               children: [
-                Icon(
-                  Icons.psychology_outlined,
-                  size: isSmallScreen ? 48 : 64,
-                  color: Colors.white,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  "We need some information to predict the progress of an autistic child",
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 16 : 20,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: EdgeInsets.all(isTablet ? 24 : 20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF667eea), Color(0xFFf093fb)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF667eea).withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.psychology_outlined,
+                    size: isTablet ? 64 : (isMobile ? 48 : 56),
                     color: Colors.white,
-                    height: 1.4,
+                  ),
+                ),
+                SizedBox(height: isTablet ? 24 : 20),
+                Text(
+                  "🧠 AI-Powered Analysis",
+                  style: TextStyle(
+                    fontSize: isTablet ? 28 : (isMobile ? 22 : 26),
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: isTablet ? 16 : 12),
+                Text(
+                  "Help us understand your child's unique journey with advanced behavioral analysis and personalized insights",
+                  style: TextStyle(
+                    fontSize: isTablet ? 18 : (isMobile ? 16 : 17),
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.6,
+                    letterSpacing: 0.3,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -413,39 +648,59 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
-  Widget _buildImagePickerCard(bool isSmallScreen) {
+  Widget _buildMagicalImagePicker(bool isMobile, bool isTablet) {
     return AnimatedBuilder(
-      animation: _pulseAnimation,
+      animation: _cardFloatAnimation,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _selectedImage == null ? _pulseAnimation.value : 1.0,
+        return Transform.translate(
+          offset: Offset(0, -_cardFloatAnimation.value * 0.5),
           child: GestureDetector(
             onTap: _pickImage,
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              height: isSmallScreen ? 200 : 250,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOutCubic,
+              height: isTablet ? 320 : (isMobile ? 240 : 280),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
+                gradient: _selectedImage == null
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.2),
+                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                      )
+                    : null,
+                color: _selectedImage != null ? Colors.white.withOpacity(0.1) : null,
+                borderRadius: BorderRadius.circular(28),
                 border: Border.all(
                   color: _selectedImage == null 
-                    ? Colors.white.withOpacity(0.5)
-                    : AppColors.accent2,
-                  width: 2,
+                    ? Colors.white.withOpacity(0.4)
+                    : const Color(0xFF4facfe),
+                  width: 2.5,
                 ),
                 boxShadow: [
                   BoxShadow(
+                    color: _selectedImage == null
+                        ? Colors.white.withOpacity(_glowAnimation.value * 0.3)
+                        : const Color(0xFF4facfe).withOpacity(0.5),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                  BoxShadow(
                     color: Colors.black.withOpacity(0.1),
-                    blurRadius: 15,
-                    spreadRadius: 3,
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(26),
                 child: _selectedImage == null
-                    ? _buildImagePlaceholder(isSmallScreen)
-                    : _buildSelectedImage(),
+                    ? _buildMagicalPlaceholder(isMobile, isTablet)
+                    : _buildSelectedImageDisplay(),
               ),
             ),
           ),
@@ -454,46 +709,72 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
-  Widget _buildImagePlaceholder(bool isSmallScreen) {
+  Widget _buildMagicalPlaceholder(bool isMobile, bool isTablet) {
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Icon(
-              Icons.add_photo_alternate_outlined,
-              size: isSmallScreen ? 48 : 64,
-              color: Colors.white,
-            ),
+          AnimatedBuilder(
+            animation: _glowAnimation,
+            builder: (context, child) {
+              return Container(
+                padding: EdgeInsets.all(isTablet ? 28 : 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(_glowAnimation.value * 0.6),
+                      blurRadius: 25,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.add_photo_alternate_outlined,
+                  size: isTablet ? 72 : (isMobile ? 56 : 64),
+                  color: Colors.white,
+                ),
+              );
+            },
           ),
-          SizedBox(height: 16),
+          SizedBox(height: isTablet ? 24 : 20),
           Text(
-            "Tap to add image",
+            _isPickingImage ? "✨ Selecting Magic..." : "📸 Tap to Upload Photo",
             style: TextStyle(
               color: Colors.white,
-              fontSize: isSmallScreen ? 16 : 18,
-              fontWeight: FontWeight.w600,
+              fontSize: isTablet ? 22 : (isMobile ? 18 : 20),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: isTablet ? 12 : 10),
           Text(
-            "Select a clear photo for better analysis",
+            "Choose a clear, well-lit photo for the most accurate analysis",
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
-              fontSize: isSmallScreen ? 12 : 14,
+              fontSize: isTablet ? 16 : (isMobile ? 14 : 15),
+              letterSpacing: 0.3,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSelectedImage() {
+  Widget _buildSelectedImageDisplay() {
     return Stack(
       children: [
         Container(
@@ -504,26 +785,47 @@ class _UploadScreenState extends State<UploadScreen>
             fit: BoxFit.cover,
           ),
         ),
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(20),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withOpacity(0.3),
+              ],
             ),
-            child: Row(
+          ),
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4facfe), Color(0xFF00f2fe)],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4facfe).withOpacity(0.5),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check, color: Colors.white, size: 16),
-                SizedBox(width: 4),
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 6),
                 Text(
-                  "Selected",
+                  "Perfect!",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -534,102 +836,214 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
-  Widget _buildFormSection(bool isSmallScreen) {
+  Widget _buildEnchantedFormSection(bool isMobile, bool isTablet) {
     return Column(
       children: [
-        _buildDropdownField(
-          label: "Age",
+        _buildGlowingDropdown(
+          label: "🎂 Child's Age",
           value: _selectedAge,
-          items: ["2 years", "3 years", "4 years", "5 years", "6 years"],
+          items: const ["2 years", "3 years", "4 years", "5 years", "6 years"],
           onChanged: (value) => setState(() => _selectedAge = value),
           icon: Icons.cake_outlined,
-          isSmallScreen: isSmallScreen,
+          isMobile: isMobile,
+          isTablet: isTablet,
         ),
-        SizedBox(height: 20),
-        _buildDropdownField(
-          label: "Gender",
+        SizedBox(height: isTablet ? 28 : 24),
+        _buildGlowingDropdown(
+          label: "👤 Gender",
           value: _selectedGender,
-          items: ["Male", "Female"],
+          items: const ["Male", "Female"],
           onChanged: (value) => setState(() => _selectedGender = value),
           icon: Icons.person_outline,
-          isSmallScreen: isSmallScreen,
+          isMobile: isMobile,
+          isTablet: isTablet,
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildGlowingDropdown({
     required String label,
     required String? value,
     required List<String> items,
     required Function(String?) onChanged,
     required IconData icon,
-    required bool isSmallScreen,
+    required bool isMobile,
+    required bool isTablet,
   }) {
     return AnimatedBuilder(
-      animation: _floatingAnimation,
+      animation: _cardFloatAnimation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, _floatingAnimation.value * 0.5),
+          offset: Offset(0, _cardFloatAnimation.value * 0.3),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.25),
+                  Colors.white.withOpacity(0.1),
+                  Colors.white.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1.5,
+                color: value != null 
+                  ? const Color(0xFF667eea).withOpacity(0.8)
+                  : Colors.white.withOpacity(0.4),
+                width: value != null ? 2.0 : 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
+                  color: value != null
+                      ? const Color(0xFF667eea).withOpacity(0.4)
+                      : Colors.white.withOpacity(_glowAnimation.value * 0.2),
+                  blurRadius: 20,
                   spreadRadius: 2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                labelText: label,
+                labelText: value == null ? label : null,
                 labelStyle: TextStyle(
-                  fontSize: isSmallScreen ? 14 : 16,
+                  fontSize: isTablet ? 18 : (isMobile ? 16 : 17),
                   color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
-                prefixIcon: Icon(
-                  icon,
-                  color: Colors.white.withOpacity(0.8),
-                  size: isSmallScreen ? 20 : 24,
+                prefixIcon: Container(
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF667eea), Color(0xFFf093fb)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF667eea).withOpacity(0.4),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: isTablet ? 24 : 20,
+                  ),
                 ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: isSmallScreen ? 16 : 20,
+                  horizontal: 20,
+                  vertical: isTablet ? 24 : 20,
+                ),
+                // Add a hint to indicate selection is needed
+                hintText: value == null ? 'Select ${label.split(' ').last}' : null,
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: isTablet ? 16 : (isMobile ? 14 : 15),
                 ),
               ),
               value: value,
-              dropdownColor: AppColors.darkBlue.withOpacity(0.95),
+              // Change to a lighter color with less opacity for better readability
+              dropdownColor: Colors.white.withOpacity(0.95),
               style: TextStyle(
-                color: Colors.white,
-                fontSize: isSmallScreen ? 14 : 16,
-                fontWeight: FontWeight.w500,
+                color: const Color(0xFF1a1a2e),
+                fontSize: isTablet ? 18 : (isMobile ? 16 : 17),
+                fontWeight: FontWeight.w700,
               ),
+              selectedItemBuilder: (BuildContext context) {
+                return items.map<Widget>((String item) {
+                  return Row(
+                    children: [
+                      // Icon to indicate selected item
+                      if (value != null) ...[
+                        Container(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Text(
+                            label.split(' ')[0] + " ", // Just the emoji part
+                            style: TextStyle(
+                              fontSize: isTablet ? 18 : (isMobile ? 16 : 17),
+                            ),
+                          ),
+                        ),
+                      ],
+                      Text(
+                        item,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isTablet ? 18 : (isMobile ? 16 : 17),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList();
+              },
               items: items.map((item) {
                 return DropdownMenuItem(
                   value: item,
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isSmallScreen ? 14 : 16,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: value == item 
+                        ? const Color(0xFF667eea).withOpacity(0.2)
+                        : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        // Visual indicator for selected item
+                        if (value == item)
+                          Container(
+                            margin: EdgeInsets.only(right: 10),
+                            child: Icon(
+                              Icons.check_circle,
+                              color: const Color(0xFF667eea),
+                              size: isTablet ? 22 : 18,
+                            ),
+                          ),
+                        Text(
+                          item,
+                          style: TextStyle(
+                            color: value == item 
+                              ? const Color(0xFF667eea)
+                              : const Color(0xFF1a1a2e),
+                            fontSize: isTablet ? 17 : (isMobile ? 15 : 16),
+                            fontWeight: value == item ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
               }).toList(),
               onChanged: onChanged,
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: Colors.white.withOpacity(0.8),
+              icon: Container(
+                width: isTablet ? 40 : 36,
+                height: isTablet ? 40 : 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center, // Ensures perfect centering
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.white,
+                  size: isTablet ? 28 : 24,
+                ),
               ),
+              elevation: 8,
+              isExpanded: true,
+              borderRadius: BorderRadius.circular(16),
+              menuMaxHeight: 300,
             ),
           ),
         );
@@ -637,60 +1051,113 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
-  Widget _buildNextButton(bool isSmallScreen) {
+  Widget _buildSpectacularButton(bool isMobile, bool isTablet) {
+    final bool canProceed = _selectedImage != null && _selectedAge != null && _selectedGender != null;
+
     return AnimatedBuilder(
-      animation: _scaleAnimation,
+      animation: _buttonScaleAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _scaleAnimation.value,
+          scale: _buttonScaleAnimation.value,
           child: GestureDetector(
-            onTapDown: (_) => _scaleController.forward(),
-            onTapUp: (_) => _scaleController.reverse(),
-            onTapCancel: () => _scaleController.reverse(),
-            onTap: _onNext,
-            child: Container(
+            onTapDown: (_) => _buttonController.forward(),
+            onTapUp: (_) => _buttonController.reverse(),
+            onTapCancel: () => _buttonController.reverse(),
+            onTap: canProceed && !_isUploading ? _onNext : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               width: double.infinity,
-              height: isSmallScreen ? 56 : 64,
+              height: isTablet ? 72 : (isMobile ? 60 : 64),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.accent1,
-                    AppColors.accent2,
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
+                gradient: canProceed
+                    ? const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Color(0xFF667eea),
+                          Color(0xFFf093fb),
+                          Color(0xFF4facfe),
+                        ],
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Colors.grey.shade600,
+                          Colors.grey.shade700,
+                        ],
+                      ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: canProceed ? [
                   BoxShadow(
-                    color: AppColors.accent1.withOpacity(0.4),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                    offset: Offset(0, 8),
+                    color: const Color(0xFF667eea).withOpacity(0.6),
+                    blurRadius: 25,
+                    spreadRadius: 3,
+                    offset: const Offset(0, 10),
                   ),
-                ],
+                  BoxShadow(
+                    color: Colors.white.withOpacity(_glowAnimation.value * 0.4),
+                    blurRadius: 35,
+                    spreadRadius: 5,
+                  ),
+                ] : [],
               ),
               child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "NEXT",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isSmallScreen ? 16 : 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+                child: _isUploading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Text(
+                            "✨ ANALYZING MAGIC...",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isTablet ? 20 : (isMobile ? 16 : 18),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "🚀 START ANALYSIS",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isTablet ? 22 : (isMobile ? 18 : 20),
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.auto_awesome,
+                              color: Colors.white,
+                              size: isTablet ? 28 : 24,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: isSmallScreen ? 20 : 24,
-                    ),
-                  ],
-                ),
               ),
             ),
           ),
