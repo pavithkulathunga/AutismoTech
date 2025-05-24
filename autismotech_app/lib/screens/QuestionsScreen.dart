@@ -349,7 +349,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
             ),
           ),
         ),
-        bottomNavigationBar: const BottomNavigationBarWidget(),
+        bottomNavigationBar: const BottomNavigationBarWidget(initialIndex: 1),
       ),
     );
   }

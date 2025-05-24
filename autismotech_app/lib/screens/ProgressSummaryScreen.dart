@@ -156,7 +156,7 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigationBarWidget(),
+      bottomNavigationBar: const BottomNavigationBarWidget(initialIndex: 0),
     );
   }
 

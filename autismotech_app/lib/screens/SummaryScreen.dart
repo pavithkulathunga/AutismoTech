@@ -208,7 +208,7 @@ class _SummaryScreenState extends State<SummaryScreen>
             ),
           ),
         ),
-        bottomNavigationBar: const BottomNavigationBarWidget(),
+        bottomNavigationBar: const BottomNavigationBarWidget(initialIndex: 2),
       ),
     );
   }
