@@ -228,8 +228,8 @@ class _GamesScreenState extends State<GamesScreen>
         );
       },
       onEnd: () {
-        // Restart the animation in reverse
-        setState(() {});
+        // Use a safer way to restart animation
+        Future.microtask(() => setState(() {}));
       },
     );
   }
@@ -250,12 +250,16 @@ class _GamesScreenState extends State<GamesScreen>
           key: _cardKeys[index],
           tween: Tween(begin: 0.0, end: _isLoaded ? 1.0 : 0.0),
           duration: Duration(milliseconds: 600 + (index * 100)),
-          curve: Curves.easeOutBack,
+          curve:
+              Curves.easeOut, // Changed from easeOutBack to prevent overshoot
           builder: (context, value, child) {
+            // Clamp the opacity value to ensure it's within valid range
+            final safeOpacity = value.clamp(0.0, 1.0);
+
             return Transform.translate(
               offset: Offset(0, 50 * (1 - value)),
               child: Opacity(
-                opacity: value,
+                opacity: safeOpacity,
                 child: Transform.scale(
                   scale: 0.8 + (0.2 * value),
                   child: child,
