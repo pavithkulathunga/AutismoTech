@@ -966,113 +966,143 @@ class _HappyScreenState extends State<HappyScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'Happy Hills',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            letterSpacing: 1.0,
           ),
         ),
-        backgroundColor: Colors.orange.shade400,
-        elevation: 8,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 24),
+                const SizedBox(width: 4),
+                Text(
+                  '$score',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade200, Colors.purple.shade100],
+            colors: [Colors.deepPurple.shade800, Colors.indigo.shade900],
           ),
         ),
         child: SafeArea(
           child: Stack(
             children: [
+              // Background decorative elements
+              Positioned(
+                top: -50,
+                left: -50,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.purple.shade300.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 100,
+                right: -80,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue.shade300.withOpacity(0.2),
+                  ),
+                ),
+              ),
+
               // Main game content
               Column(
                 children: [
-                  // Timer and Score Display
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 12,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
+                  // Timer Display
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 32,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Score: $score',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.timer,
-                              color: Colors.redAccent,
-                              size: 32,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$_secondsLeft',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.timer,
                                 color:
                                     _secondsLeft <= 10
-                                        ? Colors.red
-                                        : Colors.deepPurple,
+                                        ? Colors.red.shade300
+                                        : Colors.white,
+                                size: 24,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                '$_secondsLeft',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      _secondsLeft <= 10
+                                          ? Colors.red.shade300
+                                          : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  // Emotion display
+                  // Emotion display (if available)
                   if (_emotion.isNotEmpty)
                     Container(
-                      margin: const EdgeInsets.only(bottom: 16),
+                      margin: const EdgeInsets.only(top: 16, bottom: 8),
                       padding: const EdgeInsets.symmetric(
                         vertical: 8,
                         horizontal: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1082,8 +1112,9 @@ class _HappyScreenState extends State<HappyScreen>
                           Text(
                             'You look ${_emotion.capitalize()}!',
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -1092,108 +1123,238 @@ class _HappyScreenState extends State<HappyScreen>
 
                   // Game area
                   Expanded(
-                    child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          // Game instruction
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              vertical: 10,
+                              vertical: 12,
                               horizontal: 20,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: Colors.orange.shade300,
-                                width: 3,
-                              ),
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Text(
-                              'Tap the matching color!',
+                              'Match The Colors!',
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 30),
 
-                          // Target color display with animation
-                          AnimatedBuilder(
-                            animation: _scaleAnimation,
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _scaleAnimation.value,
-                                child: Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: targetColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 10,
-                                        spreadRadius: 2,
-                                      ),
-                                    ],
+                          // Target color with label
+                          Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'TARGET COLOR',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 16),
+                              // Target color display
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Outer glow
+                                  Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: targetColor.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  // Middle glow
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: targetColor.withOpacity(0.5),
+                                    ),
+                                  ),
+                                  // Animated color circle
+                                  AnimatedBuilder(
+                                    animation: _scaleAnimation,
+                                    builder: (context, child) {
+                                      return Transform.scale(
+                                        scale: _scaleAnimation.value,
+                                        child: Container(
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            color: targetColor,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: targetColor.withOpacity(
+                                                  0.6,
+                                                ),
+                                                blurRadius: 15,
+                                                spreadRadius: 3,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Container(
+                                              width: 30,
+                                              height: 30,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(
+                                                  0.3,
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.colorize,
+                                                color: Colors.white,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
 
-                          const SizedBox(height: 40),
-
-                          // Color choices
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Wrap(
-                              spacing: 25,
-                              runSpacing: 25,
-                              alignment: WrapAlignment.center,
-                              children:
-                                  colors.map((color) {
-                                    return GestureDetector(
-                                      onTap: () => _checkMatch(color),
-                                      child: Container(
-                                        width: 90,
-                                        height: 90,
-                                        decoration: BoxDecoration(
-                                          color: color,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 4,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: color.withOpacity(0.6),
-                                              blurRadius: 10,
-                                              spreadRadius: 2,
+                          // Color choices section
+                          Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'COLOR CHOICES',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              // Color options
+                              Wrap(
+                                spacing: 25,
+                                runSpacing: 25,
+                                alignment: WrapAlignment.center,
+                                children:
+                                    colors.map((color) {
+                                      // Check if this is the target color
+                                      final bool isTargetColor =
+                                          color == targetColor;
+                                      return GestureDetector(
+                                        onTap: () => _checkMatch(color),
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            // Subtle outer ring for each color
+                                            Container(
+                                              width: 75,
+                                              height: 75,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: color.withOpacity(0.3),
+                                              ),
+                                            ),
+                                            // Color circle
+                                            Container(
+                                              width: 65,
+                                              height: 65,
+                                              decoration: BoxDecoration(
+                                                color: color,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
+                                                  width: 2,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: color.withOpacity(
+                                                      0.4,
+                                                    ),
+                                                    blurRadius: 8,
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        32.5,
+                                                      ),
+                                                  splashColor: Colors.white24,
+                                                  highlightColor:
+                                                      Colors.white10,
+                                                  onTap:
+                                                      () => _checkMatch(color),
+                                                  child: Center(
+                                                    child: Icon(
+                                                      Icons.touch_app,
+                                                      color: Colors.white
+                                                          .withOpacity(0.7),
+                                                      size: 22,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius: BorderRadius.circular(
-                                              45,
-                                            ),
-                                            splashColor: Colors.white24,
-                                            onTap: () => _checkMatch(color),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                            ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1231,15 +1392,18 @@ class _HappyScreenState extends State<HappyScreen>
                   bottom: 20,
                   right: 20,
                   child: Container(
-                    height: 100,
-                    width: 80,
+                    height: 80,
+                    width: 65,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
+                          blurRadius: 10,
                           spreadRadius: 1,
                         ),
                       ],
