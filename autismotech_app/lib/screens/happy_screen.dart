@@ -71,6 +71,9 @@ class _HappyScreenState extends State<HappyScreen>
   final List<Map<String, dynamic>> _emotionTimeline = [];
   DateTime? _sessionStartTime;
 
+  // Adding a flag to prevent overlapping camera captures
+  bool _isProcessingImage = false;
+
   @override
   void initState() {
     super.initState();
@@ -148,7 +151,15 @@ class _HappyScreenState extends State<HappyScreen>
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return;
     }
+
+    // Check if we're already processing an image
+    if (_isProcessingImage) {
+      print('Skipping emotion detection - previous capture still processing');
+      return;
+    }
+
     try {
+      _isProcessingImage = true;
       final XFile file = await _cameraController!.takePicture();
       final bytes = await file.readAsBytes();
       final base64Image = base64Encode(bytes);
@@ -208,6 +219,9 @@ class _HappyScreenState extends State<HappyScreen>
       }
     } catch (e) {
       print('Exception in emotion detection: $e');
+    } finally {
+      _isProcessingImage =
+          false; // Reset flag when done, regardless of success/failure
     }
   }
 
@@ -1305,330 +1319,615 @@ class _HappyScreenState extends State<HappyScreen>
     required Map<String, double> emotionPercentages,
     required List<String> observations,
   }) async {
-    // Create PDF document
-    final pdf = pw.Document();
+    try {
+      // Create PDF document
+      final pdf = pw.Document();
 
-    // Load fonts for better styling
-    final regularFont = await PdfGoogleFonts.nunitoRegular();
-    final boldFont = await PdfGoogleFonts.nunitoBold();
-    final titleFont = await PdfGoogleFonts.robotoCondensedRegular();
+      // Load fonts for better styling
+      final regularFont = await PdfGoogleFonts.nunitoRegular();
+      final boldFont = await PdfGoogleFonts.nunitoBold();
+      final titleFont = await PdfGoogleFonts.robotoCondensedBold();
+      final headingFont = await PdfGoogleFonts.quicksandBold();
+      final subtitleFont = await PdfGoogleFonts.quicksandMedium();
 
-    // Add pages to the PDF
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        header: (pw.Context context) {
-          return pw.Header(
-            level: 0,
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text(
-                  'AutismoTech: Happy Hills Report',
-                  style: pw.TextStyle(
-                    font: titleFont,
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.blue800,
-                  ),
-                ),
-                pw.Text(
-                  dateFormatted,
-                  style: pw.TextStyle(
-                    font: regularFont,
-                    fontSize: 14,
-                    color: PdfColors.grey700,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        footer: (pw.Context context) {
-          return pw.Footer(
-            margin: const pw.EdgeInsets.only(top: 10),
-            trailing: pw.Text(
-              'Page ${context.pageNumber} of ${context.pagesCount}',
-              style: pw.TextStyle(
-                font: regularFont,
-                fontSize: 12,
-                fontStyle: pw.FontStyle.italic,
-                color: PdfColors.grey700,
-              ),
-            ),
-          );
-        },
-        build: (pw.Context context) {
-          return [
-            // Title and session info
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
+      // Define theme colors
+      final primaryColor = PdfColor.fromInt(0xFF3366FF);
+      final secondaryColor = PdfColor.fromInt(0xFFFF9500);
+      final accentColor = PdfColor.fromInt(0xFF62BBD3);
+      final bgColor = PdfColor.fromInt(0xFFF5F5F5);
+      final textColor = PdfColor.fromInt(0xFF333333);
+      final lightTextColor = PdfColor.fromInt(0xFF666666);
+
+      // Sort the emotion percentages for visualization
+      final sortedEmotions =
+          emotionPercentages.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
+
+      // Add pages to the PDF
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(40),
+          header: (pw.Context context) {
+            return pw.Container(
+              padding: const pw.EdgeInsets.only(bottom: 20),
               decoration: pw.BoxDecoration(
-                color: PdfColors.blue50,
-                borderRadius: pw.BorderRadius.circular(8),
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: accentColor, width: 0.5),
+                ),
               ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text(
-                    '📄 Emotion Summary Report',
-                    style: pw.TextStyle(
-                      font: titleFont,
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue800,
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Happy Hills',
+                        style: pw.TextStyle(
+                          font: titleFont,
+                          fontSize: 24,
+                          color: primaryColor,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Emotion Intelligence Report',
+                        style: pw.TextStyle(
+                          font: regularFont,
+                          fontSize: 12,
+                          color: lightTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(6),
+                    decoration: pw.BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: const pw.BorderRadius.all(
+                        pw.Radius.circular(6),
+                      ),
                     ),
-                  ),
-                  pw.SizedBox(height: 16),
-                  _buildPdfInfoRow(
-                    'Date',
-                    dateFormatted,
-                    regularFont,
-                    boldFont,
-                  ),
-                  _buildPdfInfoRow(
-                    'Session Start Time',
-                    startTimeFormatted,
-                    regularFont,
-                    boldFont,
-                  ),
-                  _buildPdfInfoRow(
-                    'Session Duration',
-                    '${sessionDurationSeconds ~/ 60} minutes',
-                    regularFont,
-                    boldFont,
-                  ),
-                  _buildPdfInfoRow(
-                    'Game Played',
-                    'Happy Hills - Color Match',
-                    regularFont,
-                    boldFont,
-                  ),
-                  _buildPdfInfoRow(
-                    'Final Score',
-                    score.toString(),
-                    regularFont,
-                    boldFont,
+                    child: pw.Text(
+                      dateFormatted,
+                      style: pw.TextStyle(
+                        font: boldFont,
+                        color: PdfColor.fromInt(0xFFFFFFFF),
+                        fontSize: 10,
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            pw.SizedBox(height: 20),
-
-            // Emotion Distribution Section
-            pw.Header(
-              level: 1,
-              text: '🎯 Emotion Distribution',
-              textStyle: pw.TextStyle(
-                font: titleFont,
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.blue800,
+            );
+          },
+          footer: (pw.Context context) {
+            return pw.Container(
+              margin: const pw.EdgeInsets.only(top: 10),
+              padding: const pw.EdgeInsets.only(top: 10),
+              decoration: pw.BoxDecoration(
+                border: pw.Border(
+                  top: pw.BorderSide(
+                    color: PdfColor.fromInt(0xFFE0E0E0),
+                    width: 0.5,
+                  ),
+                ),
               ),
-            ),
-            pw.SizedBox(height: 10),
-
-            // Create table for emotion distribution
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey300, width: 1),
-              children: [
-                // Table header
-                pw.TableRow(
-                  decoration: pw.BoxDecoration(color: PdfColors.grey200),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Generated by AutismoTech',
+                    style: pw.TextStyle(
+                      font: regularFont,
+                      fontSize: 9,
+                      color: PdfColor.fromInt(0xFF999999),
+                    ),
+                  ),
+                  pw.Text(
+                    'Page ${context.pageNumber} of ${context.pagesCount}',
+                    style: pw.TextStyle(
+                      font: regularFont,
+                      fontSize: 9,
+                      color: PdfColor.fromInt(0xFF999999),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          build: (pw.Context context) {
+            return [
+              // Header Section with Summary
+              pw.Container(
+                padding: const pw.EdgeInsets.all(20),
+                decoration: pw.BoxDecoration(
+                  color: bgColor,
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(10),
+                  ),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    _buildPdfTableCell('Emotion', regularFont, isHeader: true),
-                    _buildPdfTableCell('Duration', regularFont, isHeader: true),
-                    _buildPdfTableCell(
-                      'Percentage',
-                      regularFont,
-                      isHeader: true,
+                    pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Left side summary stats
+                        pw.Expanded(
+                          flex: 3,
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                'SESSION SUMMARY',
+                                style: pw.TextStyle(
+                                  font: headingFont,
+                                  fontSize: 16,
+                                  color: primaryColor,
+                                ),
+                              ),
+                              pw.SizedBox(height: 10),
+                              _buildPdfInfoRow(
+                                'Session Date',
+                                dateFormatted,
+                                regularFont,
+                                boldFont,
+                                textColor,
+                              ),
+                              _buildPdfInfoRow(
+                                'Start Time',
+                                startTimeFormatted,
+                                regularFont,
+                                boldFont,
+                                textColor,
+                              ),
+                              _buildPdfInfoRow(
+                                'Duration',
+                                '${sessionDurationSeconds ~/ 60} minutes',
+                                regularFont,
+                                boldFont,
+                                textColor,
+                              ),
+                              _buildPdfInfoRow(
+                                'Game',
+                                'Happy Hills - Color Match',
+                                regularFont,
+                                boldFont,
+                                textColor,
+                              ),
+                              _buildPdfInfoRow(
+                                'Final Score',
+                                score.toString(),
+                                regularFont,
+                                boldFont,
+                                textColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                        pw.SizedBox(width: 20),
+                        // Right side emotion summary
+                        pw.Expanded(
+                          flex: 2,
+                          child: pw.Container(
+                            padding: const pw.EdgeInsets.all(15),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColor.fromInt(0xFFFFFFFF),
+                              borderRadius: const pw.BorderRadius.all(
+                                pw.Radius.circular(10),
+                              ),
+                              border: pw.Border.all(
+                                color: accentColor,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.center,
+                              children: [
+                                pw.Text(
+                                  'PRIMARY EMOTION',
+                                  style: pw.TextStyle(
+                                    font: subtitleFont,
+                                    fontSize: 10,
+                                    color: primaryColor,
+                                  ),
+                                  textAlign: pw.TextAlign.center,
+                                ),
+                                pw.SizedBox(height: 8),
+                                pw.Text(
+                                  _getEmotionText(dominantEmotion),
+                                  style: pw.TextStyle(
+                                    font: boldFont,
+                                    fontSize: 20,
+                                    color: _getPdfEmotionColor(dominantEmotion),
+                                  ),
+                                  textAlign: pw.TextAlign.center,
+                                ),
+                                pw.SizedBox(height: 5),
+                                pw.Text(
+                                  '${emotionPercentages[dominantEmotion]?.toStringAsFixed(1) ?? "0"}%',
+                                  style: pw.TextStyle(
+                                    font: boldFont,
+                                    fontSize: 18,
+                                    color: textColor,
+                                  ),
+                                  textAlign: pw.TextAlign.center,
+                                ),
+                                pw.SizedBox(height: 5),
+                                pw.Text(
+                                  'of session time',
+                                  style: pw.TextStyle(
+                                    font: regularFont,
+                                    fontSize: 10,
+                                    color: lightTextColor,
+                                  ),
+                                  textAlign: pw.TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                // Table rows
-                ...emotionPercentages.entries
-                    .where((entry) => entry.value > 0)
-                    .map(
-                      (entry) => pw.TableRow(
+              ),
+
+              pw.SizedBox(height: 20),
+
+              // Emotion Distribution Section with chart
+              pw.Container(
+                padding: const pw.EdgeInsets.all(20),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromInt(0xFFFFFFFF),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(10),
+                  ),
+                  border: pw.Border.all(color: PdfColor.fromInt(0xFFE0E0E0)),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'EMOTION DISTRIBUTION',
+                      style: pw.TextStyle(
+                        font: headingFont,
+                        fontSize: 16,
+                        color: primaryColor,
+                      ),
+                    ),
+                    pw.SizedBox(height: 15),
+                    // Horizontal bar chart
+                    pw.Container(
+                      height: 160,
+                      child: pw.Row(
                         children: [
-                          _buildPdfTableCell(
-                            '${entry.key.capitalize()}',
-                            regularFont,
-                          ),
-                          _buildPdfTableCell(
-                            '${(entry.value * sessionDurationSeconds / 100).round()} s',
-                            regularFont,
-                          ),
-                          _buildPdfTableCell(
-                            '${entry.value.toStringAsFixed(1)}%',
-                            regularFont,
+                          // Left side - emotion bars
+                          pw.Expanded(
+                            flex: 3,
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                ...sortedEmotions.map((entry) {
+                                  final barWidth =
+                                      entry.value /
+                                      100 *
+                                      250; // Scale for page width
+                                  return pw.Container(
+                                    margin: const pw.EdgeInsets.symmetric(
+                                      vertical: 5,
+                                    ),
+                                    child: pw.Column(
+                                      crossAxisAlignment:
+                                          pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Row(
+                                          children: [
+                                            pw.Container(
+                                              width: 80,
+                                              child: pw.Text(
+                                                _getEmotionText(entry.key),
+                                                style: pw.TextStyle(
+                                                  font: boldFont,
+                                                  fontSize: 10,
+                                                  color: textColor,
+                                                ),
+                                              ),
+                                            ),
+                                            pw.Expanded(
+                                              child: pw.Stack(
+                                                children: [
+                                                  // Background track
+                                                  pw.Container(
+                                                    height: 12,
+                                                    decoration: pw.BoxDecoration(
+                                                      color: PdfColor.fromInt(
+                                                        0xFFEEEEEE,
+                                                      ),
+                                                      borderRadius:
+                                                          const pw.BorderRadius.all(
+                                                            pw.Radius.circular(
+                                                              6,
+                                                            ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  // Value bar
+                                                  pw.Container(
+                                                    height: 12,
+                                                    width: barWidth,
+                                                    decoration: pw.BoxDecoration(
+                                                      color:
+                                                          _getPdfEmotionColor(
+                                                            entry.key,
+                                                          ),
+                                                      borderRadius:
+                                                          const pw.BorderRadius.all(
+                                                            pw.Radius.circular(
+                                                              6,
+                                                            ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  // Value text
+                                                  pw.Positioned(
+                                                    right: 5,
+                                                    top: 2,
+                                                    child: pw.Text(
+                                                      '${entry.value.toStringAsFixed(1)}%',
+                                                      style: pw.TextStyle(
+                                                        font: boldFont,
+                                                        fontSize: 8,
+                                                        color: PdfColor.fromInt(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    )
-                    .toList(),
-              ],
-            ),
-            pw.SizedBox(height: 10),
-            _buildPdfInfoRow(
-              'Most dominant emotion',
-              dominantEmotion.capitalize(),
-              regularFont,
-              boldFont,
-            ),
-            pw.SizedBox(height: 20),
-
-            // AI Observations Section
-            pw.Header(
-              level: 1,
-              text: '🧠 AI Observations',
-              textStyle: pw.TextStyle(
-                font: titleFont,
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.blue800,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            pw.SizedBox(height: 10),
-            ...observations
-                .map(
-                  (obs) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 8),
-                    child: pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          '• ',
-                          style: pw.TextStyle(font: boldFont, fontSize: 14),
-                        ),
-                        pw.Expanded(
-                          child: pw.Text(
-                            obs,
-                            style: pw.TextStyle(
-                              font: regularFont,
-                              fontSize: 14,
+
+              pw.SizedBox(height: 20),
+
+              // Observations & Analysis
+              pw.Container(
+                padding: const pw.EdgeInsets.all(20),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromInt(0xFFFFFFFF),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(10),
+                  ),
+                  border: pw.Border.all(color: PdfColor.fromInt(0xFFE0E0E0)),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'AI OBSERVATIONS & ANALYSIS',
+                      style: pw.TextStyle(
+                        font: headingFont,
+                        fontSize: 16,
+                        color: primaryColor,
+                      ),
+                    ),
+                    pw.SizedBox(height: 15),
+                    ...observations
+                        .map(
+                          (observation) => pw.Container(
+                            margin: const pw.EdgeInsets.only(bottom: 10),
+                            padding: const pw.EdgeInsets.all(10),
+                            decoration: pw.BoxDecoration(
+                              color: bgColor,
+                              borderRadius: const pw.BorderRadius.all(
+                                pw.Radius.circular(6),
+                              ),
+                            ),
+                            child: pw.Row(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: pw.BoxDecoration(
+                                    color: accentColor,
+                                    shape: pw.BoxShape.circle,
+                                  ),
+                                  alignment: pw.Alignment.center,
+                                  child: pw.Text(
+                                    '•',
+                                    style: pw.TextStyle(
+                                      color: PdfColor.fromInt(0xFFFFFFFF),
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                pw.SizedBox(width: 10),
+                                pw.Expanded(
+                                  child: pw.Text(
+                                    observation,
+                                    style: pw.TextStyle(
+                                      font: regularFont,
+                                      fontSize: 10,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                        )
+                        .toList(),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 20),
+
+              // Recommendations Section
+              pw.Container(
+                padding: const pw.EdgeInsets.all(20),
+                decoration: pw.BoxDecoration(
+                  gradient: pw.LinearGradient(
+                    colors: [primaryColor, PdfColor.fromInt(0xFF5C84FF)],
+                  ),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(10),
+                  ),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'RECOMMENDATIONS',
+                      style: pw.TextStyle(
+                        font: headingFont,
+                        fontSize: 16,
+                        color: PdfColor.fromInt(0xFFFFFFFF),
+                      ),
+                    ),
+                    pw.SizedBox(height: 15),
+
+                    // Recommendation items
+                    _buildRecommendationItem(
+                      'Share this report with a therapist or educator.',
+                      regularFont,
+                      PdfColor.fromInt(0xFFFFFFFF),
+                    ),
+                    _buildRecommendationItem(
+                      'Use emotion pattern insights to guide future sessions.',
+                      regularFont,
+                      PdfColor.fromInt(0xFFFFFFFF),
+                    ),
+                    _buildRecommendationItem(
+                      'Encourage use of reward-based tasks to sustain engagement.',
+                      regularFont,
+                      PdfColor.fromInt(0xFFFFFFFF),
+                    ),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 25),
+
+              // Report footer with signature
+              pw.Center(
+                child: pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    color: bgColor,
+                    borderRadius: const pw.BorderRadius.all(
+                      pw.Radius.circular(10),
                     ),
                   ),
-                )
-                .toList(),
-            pw.SizedBox(height: 20),
-
-            // Next Steps Section
-            pw.Header(
-              level: 1,
-              text: '📬 Next Steps',
-              textStyle: pw.TextStyle(
-                font: titleFont,
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.blue800,
-              ),
-            ),
-            pw.SizedBox(height: 10),
-            ...[
-                  'Share this report with a therapist or educator.',
-                  'Use emotion pattern insights to guide future sessions.',
-                  'Encourage use of reward-based tasks to sustain engagement.',
-                ]
-                .map(
-                  (step) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 8),
-                    child: pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          '• ',
-                          style: pw.TextStyle(font: boldFont, fontSize: 14),
+                  child: pw.Column(
+                    children: [
+                      pw.Text(
+                        'Report generated by AutismoTech Happy Hills',
+                        style: pw.TextStyle(
+                          font: subtitleFont,
+                          fontSize: 10,
+                          color: lightTextColor,
                         ),
-                        pw.Expanded(
-                          child: pw.Text(
-                            step,
-                            style: pw.TextStyle(
-                              font: regularFont,
-                              fontSize: 14,
-                            ),
-                          ),
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'Session ID: AUX-${Random().nextInt(9000) + 1000}',
+                        style: pw.TextStyle(
+                          font: boldFont,
+                          fontSize: 10,
+                          color: textColor,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                )
-                .toList(),
-            pw.SizedBox(height: 30),
-
-            // Footer info
-            pw.Container(
-              alignment: pw.Alignment.center,
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                color: PdfColors.grey100,
-                borderRadius: pw.BorderRadius.circular(8),
+                ),
               ),
-              child: pw.Column(
-                children: [
-                  pw.Text(
-                    'Generated by AutismoTech Mobile App',
-                    style: pw.TextStyle(
-                      font: boldFont,
-                      fontSize: 14,
-                      color: PdfColors.blue800,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Session ID: #AUX-${Random().nextInt(9000) + 1000}',
-                    style: pw.TextStyle(font: regularFont, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ];
-        },
-      ),
-    );
-
-    // Save the PDF
-    try {
-      final output = await getTemporaryDirectory();
-      final file = File(
-        '${output.path}/happy_hills_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+            ];
+          },
+        ),
       );
+
+      // Save PDF to a file
+      final String dir = (await getApplicationDocumentsDirectory()).path;
+      final String path =
+          '$dir/happy_hills_report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final File file = File(path);
       await file.writeAsBytes(await pdf.save());
+
+      // Navigate to preview screen
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => PdfPreviewScreen(
+                  pdfFile: file,
+                  dateFormatted: dateFormatted,
+                ),
+          ),
+        );
+      }
+
       return file;
     } catch (e) {
-      print('Error saving PDF: $e');
+      print('Error generating PDF: $e');
       return null;
     }
   }
 
-  // Helper method for PDF info rows
+  // Helper method to build an info row in the PDF
   pw.Widget _buildPdfInfoRow(
     String label,
     String value,
     pw.Font regularFont,
     pw.Font boldFont,
+    PdfColor textColor,
   ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 4),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.SizedBox(
-            width: 150,
+          pw.Container(
+            width: 90,
             child: pw.Text(
               label,
-              style: pw.TextStyle(font: boldFont, fontSize: 14),
+              style: pw.TextStyle(
+                font: regularFont,
+                fontSize: 10,
+                color: textColor,
+              ),
             ),
           ),
           pw.Expanded(
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: regularFont, fontSize: 14),
+              style: pw.TextStyle(
+                font: boldFont,
+                fontSize: 10,
+                color: textColor,
+              ),
             ),
           ),
         ],
@@ -1636,43 +1935,57 @@ class _HappyScreenState extends State<HappyScreen>
     );
   }
 
-  // Helper method for PDF table cells
-  pw.Widget _buildPdfTableCell(
+  // Helper method to build a recommendation item in the PDF
+  pw.Widget _buildRecommendationItem(
     String text,
-    pw.Font font, {
-    bool isHeader = false,
-  }) {
+    pw.Font font,
+    PdfColor textColor,
+  ) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(
-        text,
-        textAlign: pw.TextAlign.center,
-        style: pw.TextStyle(
-          font: font,
-          fontSize: 12,
-          fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
-        ),
+      padding: const pw.EdgeInsets.only(bottom: 10),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            '•',
+            style: pw.TextStyle(font: font, fontSize: 14, color: textColor),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: pw.Text(
+              text,
+              style: pw.TextStyle(font: font, fontSize: 10, color: textColor),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // If you need to modify the PDF opening functionality, update this method:
-  Future<void> _openPdfFile(File file) async {
-    try {
-      final result = await OpenFilex.open(file.path);
+  // Helper method to get emotion name with capitalization
+  String _getEmotionText(String emotion) {
+    return emotion.capitalize();
+  }
 
-      if (result.type != ResultType.done) {
-        // If opening fails, fallback to sharing
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], subject: 'Happy Hills Emotion Report');
-      }
-    } catch (e) {
-      print('Error opening PDF file: $e');
-      // Fallback to sharing if opening fails with exception
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], subject: 'Happy Hills Emotion Report');
+  // Helper method to get color for an emotion in the PDF
+  PdfColor _getPdfEmotionColor(String emotion) {
+    switch (emotion.toLowerCase()) {
+      case 'happy':
+        return PdfColor.fromInt(0xFFFFD747); // Bright yellow
+      case 'sad':
+        return PdfColor.fromInt(0xFF4B89DC); // Blue
+      case 'angry':
+        return PdfColor.fromInt(0xFFFF5252); // Red
+      case 'surprised':
+        return PdfColor.fromInt(0xFFAC92EB); // Purple
+      case 'neutral':
+        return PdfColor.fromInt(0xFF8CC152); // Green
+      case 'fear':
+        return PdfColor.fromInt(0xFF5D9CEC); // Light blue
+      case 'disgust':
+        return PdfColor.fromInt(0xFFBF5B51); // Brownish red
+      default:
+        return PdfColor.fromInt(0xFFCCD1D9); // Gray
     }
   }
 }
