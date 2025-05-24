@@ -29,8 +29,7 @@ class AppRoutes {
     '/splash': (context) => const SplashScreen(),
     '/login': (context) => const LoginScreen(),
     '/progress': (context) => const LoginScreen(),
-    '/register': (context) => const RegisterScreen()
-
+    '/register': (context) => const RegisterScreen(),
     '/video-list': (context) => const VideoListScreen(),
   };
 }
