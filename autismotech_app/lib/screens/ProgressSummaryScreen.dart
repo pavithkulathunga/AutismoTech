@@ -547,15 +547,24 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
                       ),
                       decoration: BoxDecoration(
                         color: isImprovement 
-                            ? Colors.green.withOpacity(0.2)
-                            : Colors.orange.withOpacity(0.2),
+                            ? const Color(0xFF10B981).withOpacity(0.9)
+                            : const Color(0xFFF59E0B).withOpacity(0.9),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isImprovement 
-                              ? Colors.green.withOpacity(0.3)
-                              : Colors.orange.withOpacity(0.3),
-                          width: 1,
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFF59E0B),
+                          width: 1.5,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isImprovement 
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFF59E0B)).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -564,7 +573,7 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
                             isImprovement 
                                 ? Icons.trending_up_rounded
                                 : Icons.trending_flat_rounded,
-                            color: isImprovement ? Colors.green : Colors.orange,
+                            color: Colors.white,
                             size: isTablet ? 18 : 16,
                           ),
                           SizedBox(width: isTablet ? 6 : 4),
@@ -572,8 +581,8 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
                             isImprovement ? 'Improving' : 'Stable',
                             style: TextStyle(
                               fontSize: isTablet ? 14 : 12,
-                              fontWeight: FontWeight.w600,
-                              color: isImprovement ? Colors.green : Colors.orange,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -620,20 +629,45 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: isTablet ? 16 : 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withOpacity(0.9),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: isTablet ? 16 : 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
-            Text(
-              '${value.toStringAsFixed(1)}%',
-              style: TextStyle(
-                fontSize: isTablet ? 16 : 14,
-                fontWeight: FontWeight.w700,
-                color: color,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: color,
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.4),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                '${value.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: isTablet ? 16 : 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -642,8 +676,12 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
         Container(
           height: isTablet ? 12 : 10,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.4),
+              width: 1,
+            ),
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
@@ -658,10 +696,10 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
                     gradient: LinearGradient(
                       colors: [color, color.withOpacity(0.8)],
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(7),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withOpacity(0.4),
+                        color: color.withOpacity(0.6),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -683,10 +721,16 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
     final isNeutral = improvement == 0;
     
     Color indicatorColor = isPositive 
-        ? Colors.green 
+        ? const Color(0xFF10B981)
         : isNeutral 
-            ? Colors.orange 
-            : Colors.red;
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
+    
+    Color backgroundColor = isPositive 
+        ? const Color(0xFF10B981).withOpacity(0.2)
+        : isNeutral 
+            ? const Color(0xFFF59E0B).withOpacity(0.2)
+            : const Color(0xFFEF4444).withOpacity(0.2);
     
     IconData icon = isPositive 
         ? Icons.trending_up_rounded 
@@ -697,24 +741,38 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
     return Container(
       padding: EdgeInsets.all(isTablet ? 16 : 12),
       decoration: BoxDecoration(
-        color: indicatorColor.withOpacity(0.15),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: indicatorColor.withOpacity(0.3),
-          width: 1,
+          color: indicatorColor.withOpacity(0.5),
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: indicatorColor.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(isTablet ? 8 : 6),
             decoration: BoxDecoration(
-              color: indicatorColor.withOpacity(0.2),
+              color: indicatorColor,
               borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: indicatorColor.withOpacity(0.4),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              color: indicatorColor,
+              color: Colors.white,
               size: isTablet ? 20 : 18,
             ),
           ),
@@ -727,16 +785,30 @@ class _ProgressSummaryScreenState extends State<ProgressSummaryScreen>
                   'Improvement',
                   style: TextStyle(
                     fontSize: isTablet ? 14 : 12,
-                    color: Colors.white.withOpacity(0.8),
-                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
-                  '${improvement >= 0 ? '+' : ''}${improvement.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: isTablet ? 20 : 18,
-                    fontWeight: FontWeight.w800,
-                    color: indicatorColor,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${improvement >= 0 ? '+' : ''}${improvement.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: isTablet ? 20 : 18,
+                      fontWeight: FontWeight.w900,
+                      color: indicatorColor,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 1),
+                          blurRadius: 2,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
